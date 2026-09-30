@@ -10,6 +10,34 @@ tests below have to be run from your own connection.
 Cloudflare sits in front of the site (`server: cloudflare`). It isn't in the
 caching notes, so it has to be purged as part of every test.
 
+## Update, 30 Sept after 10:02: the snippet theory is withdrawn
+
+Dan (Atherstone Digital) tested live, logged out, on /glassware.html:
+- JetSmartFilters sends its pagination request as a **POST** to
+  `/glassware.html?paged=2&jsf_ajax=1&jsf_force_referrer=self&jsf_referrer_sequence=late&orderby=date`.
+  "EXC Legacy Query Params" only acts on GET requests. That was the open question
+  below, and the answer clears it.
+- All five of his snippets have been off since 09:55, and pagination is still broken.
+- The response is `{"success":false,"data":"Request data is incorrect."}`. That's
+  JetSmartFilters' own JSON. The request got through Cloudflare and was answered
+  by WordPress, so the Cloudflare theory is cleared for this fault too.
+- Ticking a category filter on the same page still works. Only pagination fails.
+- At 02:40 WordPress auto-updated JetSmartFilters from 3.8.5.1 to 3.8.6. It was the
+  only code change overnight.
+
+**Where it fails now:** server side, inside JetSmartFilters. It rejects the
+pagination request's data. The prime suspect is the 3.8.6 update.
+
+**Not yet proven:** that page 2 worked on 3.8.5.1, and whether a stale NitroPack
+or Cloudflare copy of the 3.8.5.1 scripts is being sent to the 3.8.6 server code.
+
+**Next tests, one at a time:**
+1. Purge NitroPack and Cloudflare, then retest logged out. If that fixes it, the
+   cause was stale scripts, and no rollback is needed.
+2. If it's still broken, roll JetSmartFilters back to 3.8.5.1, purge, and retest.
+
+The v2 replacement snippet has been removed. It isn't needed.
+
 ## Update, 30 Sept 09:01: Cloudflare challenges every request
 
 All four curl tests were run from a UK home connection (cf-ray ...-LHR). Every one of
@@ -29,7 +57,7 @@ Consequences:
 - Worth checking separately: NitroPack's optimisation crawler and search engines
   may be challenged too.
 
-## Prime suspect: "EXC Legacy Query Params" (added 23 Sept 2026)
+## Withdrawn suspect: "EXC Legacy Query Params" (added 23 Sept 2026)
 
 This is one of four snippets added on 23 Sept by Atherstone Digital. None of them
 were on the list of recent changes. It runs on `template_redirect` at priority 1
