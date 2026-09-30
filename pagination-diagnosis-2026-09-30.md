@@ -10,6 +10,13 @@ tests below have to be run from your own connection.
 Cloudflare sits in front of the site (`server: cloudflare`). It isn't in the
 caching notes, so it has to be purged as part of every test.
 
+## Resolved, 30 Sept
+
+Rolling JetSmartFilters back from 3.8.6 to 3.8.5.1 fixed archive pagination.
+Cause: the JetSmartFilters 3.8.6 auto-update at 02:40. To do: turn off
+auto-updates for JetSmartFilters, report the bug to Crocoblock, then turn
+Dan's five snippets back on one at a time, checking pagination after each.
+
 ## Update, 30 Sept after 10:02: the snippet theory is withdrawn
 
 Dan (Atherstone Digital) tested live on /glassware.html (whether logged in or out is not stated):
