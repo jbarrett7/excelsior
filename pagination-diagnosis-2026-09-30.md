@@ -12,7 +12,7 @@ caching notes, so it has to be purged as part of every test.
 
 ## Update, 30 Sept after 10:02: the snippet theory is withdrawn
 
-Dan (Atherstone Digital) tested live, logged out, on /glassware.html:
+Dan (Atherstone Digital) tested live on /glassware.html (whether logged in or out is not stated):
 - JetSmartFilters sends its pagination request as a **POST** to
   `/glassware.html?paged=2&jsf_ajax=1&jsf_force_referrer=self&jsf_referrer_sequence=late&orderby=date`.
   "EXC Legacy Query Params" only acts on GET requests. That was the open question
