@@ -10,6 +10,25 @@ tests below have to be run from your own connection.
 Cloudflare sits in front of the site (`server: cloudflare`). It isn't in the
 caching notes, so it has to be purged as part of every test.
 
+## Update, 30 Sept 09:01: Cloudflare challenges every request
+
+All four curl tests were run from a UK home connection (cf-ray ...-LHR). Every one of
+them, including the POST, returned `403` with `cf-mitigated: challenge`. None of them
+reached WordPress, NitroPack or mod_pagespeed. From the cloud environment,
+`/robots.txt` and `/wp-admin/admin-ajax.php` were challenged as well, so it looks
+like a site-wide rule (Under Attack mode, or a catch-all custom rule or Bot Fight
+setting) rather than a rule on particular paths.
+
+Consequences:
+- Curl can't test this site while that rule is in place, so the tests move to the
+  browser console. See "Console tests" below.
+- It's a second possible mechanism. If Cloudflare also challenges the JetSmartFilters
+  XHR, pagination fails in exactly the same silent way. Console test B tells the two
+  apart: a 403 with `cf-mitigated` points at Cloudflare, a redirect that strips
+  `jsf_ajax` points at the snippet. Both can be true at once.
+- Worth checking separately: NitroPack's optimisation crawler and search engines
+  may be challenged too.
+
 ## Prime suspect: "EXC Legacy Query Params" (added 23 Sept 2026)
 
 This is one of four snippets added on 23 Sept by Atherstone Digital. None of them
@@ -48,6 +67,13 @@ fire (it's guarded to GET only) and the suspect is cleared.
    Also run `curl -sI` on `/dried-flowers.html/page/2/`. That form is expected to 404 and doesn't matter, because the links use `?paged=`.
 
 If Cloudflare challenges your curl too, say so rather than working around it.
+
+## Console tests (replace the curl tests while Cloudflare challenges curl)
+
+Run them in the DevTools console on the live site, in a fresh incognito window,
+logged out. These requests are same-origin, so every response header is readable.
+The Network tab shows each redirect hop, with its Location and x-redirect-by. See
+the chat reply for the exact code.
 
 ## DevTools checks (incognito, logged out)
 
