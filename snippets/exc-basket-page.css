@@ -732,6 +732,38 @@ body.woocommerce-cart .cart_totals .wc-proceed-to-checkout a.checkout-button:hov
 }
 
 
+/* Locked button under the minimum order.
+   Printed by the "EXC Min Order Checkout Button" PHP snippet. */
+body.woocommerce-cart .cart_totals .wc-proceed-to-checkout button.exc-checkout-locked[disabled],
+body.woocommerce-cart .cart_totals .wc-proceed-to-checkout button.exc-checkout-locked[disabled]:hover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 16px 20px;
+    background: var(--exc-off-white);
+    color: var(--exc-muted);
+    border: 1px solid var(--exc-cart-line);
+    border-radius: var(--exc-cart-radius);
+    box-shadow: none;
+    text-shadow: none;
+    opacity: 1;
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    cursor: not-allowed;
+}
+body.woocommerce-cart .cart_totals .wc-proceed-to-checkout button.exc-checkout-locked .amount {
+    margin: 0 0.35em;
+    color: var(--exc-ink);
+}
+
+
 /* ---------------------------------------------------
    9. CROSS-SELLS (sit under the totals card)
    --------------------------------------------------- */

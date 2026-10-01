@@ -1,0 +1,1016 @@
+/* ===================================================
+   EXC Checkout Page (v2, 1 Oct 2026)
+   WPCode: CSS Snippet. Auto Insert, Site Wide Header, priority 10.
+   REPLACES the Custom CSS in the Checkout page's Elementor page settings.
+   Delete that CSS when this goes live, or both will fight.
+
+   Scoped to the classic checkout form (form.checkout), so the
+   order-received and pay-for-order pages are left alone.
+   Matches the EXC Basket Page snippet: 4px corners, full-width
+   hairlines, no soft shadows. The Apple Pay, Google Pay, Onelink,
+   PayPal and card fields are drawn by their plugins and untouched.
+   =================================================== */
+
+body.woocommerce-checkout {
+    --exc-co-line: #dfdfdf;
+    --exc-co-field: var(--exc-muted-light);
+    --exc-co-radius: 4px;
+    --exc-co-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+
+/* ---------------------------------------------------
+   1. PAGE WRAPPER
+   --------------------------------------------------- */
+body.woocommerce-checkout .woocommerce:has(> form.checkout) {
+    box-sizing: border-box;
+    max-width: 1280px;
+    margin: 48px auto 80px;
+    padding: 0 24px;
+    font-family: var(--exc-sans);
+    color: var(--exc-ink);
+}
+
+
+/* ---------------------------------------------------
+   2. SECTION HEADINGS
+   One style everywhere: small caps, a full-width hairline
+   and a short purple bar, both drawn as backgrounds so
+   they can never drift or break.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout #customer_details h3:not(#ship-to-different-address),
+body.woocommerce-checkout form.checkout #order_review::before,
+body.woocommerce-checkout form.checkout #payment::before {
+    display: block;
+    margin: 0 0 20px;
+    padding: 0 0 12px;
+    background:
+        linear-gradient(var(--exc-purple), var(--exc-purple)) left bottom / 40px 2px no-repeat,
+        linear-gradient(var(--exc-co-line), var(--exc-co-line)) left bottom / 100% 1px no-repeat;
+    border: 0;
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout form.checkout #customer_details h3:not(#ship-to-different-address)::after {
+    content: none;
+    display: none;
+}
+
+/* "Your order" and "Payment method" headings. The text after the
+   slash is what screen readers get: nothing, because the real
+   "Your order" heading is kept for them below. */
+body.woocommerce-checkout form.checkout #order_review::before {
+    content: "Your order";
+    content: "Your order" / "";
+}
+body.woocommerce-checkout form.checkout #payment::before {
+    content: "Payment method";
+    margin-bottom: 16px;
+}
+
+/* WooCommerce's own "Your order" heading: hidden visually, kept
+   for screen readers, and taken out of the grid. */
+body.woocommerce-checkout form.checkout > #order_review_heading {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+
+/* ---------------------------------------------------
+   3. TOP OF PAGE: coupon and login toggles, banners
+   --------------------------------------------------- */
+body.woocommerce-checkout .woocommerce-form-coupon-toggle .woocommerce-info,
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
+    /* !important only to beat the global Notices snippet, which
+       sets all of these with !important and a 60px icon indent. */
+    display: block !important;
+    margin: 0 0 16px !important;
+    padding: 14px 18px !important;
+    background: var(--exc-white) !important;
+    color: var(--exc-ink) !important;
+    border: 1px solid var(--exc-co-line) !important;
+    border-left: 3px solid var(--exc-purple) !important;
+    border-radius: var(--exc-co-radius) !important;
+    box-shadow: none !important;
+    font-family: var(--exc-sans);
+    font-size: 14px !important;
+    line-height: 1.5;
+}
+body.woocommerce-checkout .woocommerce-form-coupon-toggle .woocommerce-info::before,
+body.woocommerce-checkout .woocommerce-form-coupon-toggle .woocommerce-info::after,
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info::before,
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info::after {
+    content: none;
+    display: none;
+}
+body.woocommerce-checkout .woocommerce-form-coupon-toggle .woocommerce-info a,
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a {
+    margin-left: 4px;
+    color: var(--exc-purple);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--exc-purple-line);
+}
+body.woocommerce-checkout .woocommerce-form-coupon-toggle .woocommerce-info a:hover,
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a:hover {
+    border-bottom-color: var(--exc-purple);
+}
+
+/* Coupon and login forms when opened. WooCommerce slides these
+   open with an inline display:block, so the layout uses floats. */
+body.woocommerce-checkout .woocommerce form.checkout_coupon,
+body.woocommerce-checkout .woocommerce form.woocommerce-form-login {
+    margin: 0 0 16px;
+    padding: 18px;
+    background: var(--exc-white);
+    border: 1px solid var(--exc-co-line);
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon > p:not(.form-row) {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--exc-muted);
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon .form-row-first {
+    float: left;
+    width: calc(100% - 172px);
+    margin: 0;
+    padding: 0;
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon .form-row-last {
+    float: right;
+    width: 160px;
+    margin: 0;
+    padding: 0;
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon #coupon_code {
+    box-sizing: border-box;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    padding: 0 14px;
+    background: var(--exc-white);
+    border: 1px solid var(--exc-co-field);
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon #coupon_code:focus {
+    border-color: var(--exc-purple);
+    box-shadow: 0 0 0 3px var(--exc-purple-soft);
+    outline: none;
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon button.button,
+body.woocommerce-checkout .woocommerce form.woocommerce-form-login button.button {
+    box-sizing: border-box;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    padding: 0 18px;
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border: 1px solid var(--exc-purple);
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+    font-family: var(--exc-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+body.woocommerce-checkout .woocommerce form.woocommerce-form-login button.button {
+    width: auto;
+}
+body.woocommerce-checkout .woocommerce form.checkout_coupon button.button:hover,
+body.woocommerce-checkout .woocommerce form.woocommerce-form-login button.button:hover {
+    background: var(--exc-purple-dark);
+    border-color: var(--exc-purple-dark);
+}
+
+/* Banners and notices from other snippets: squared up to match */
+body.woocommerce-checkout .exc-collection-banner,
+body.woocommerce-checkout .exc-restricted-panel {
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+}
+body.woocommerce-checkout .woocommerce > .woocommerce-error,
+body.woocommerce-checkout .woocommerce > .woocommerce-message,
+body.woocommerce-checkout .woocommerce-notices-wrapper > *,
+body.woocommerce-checkout form.checkout .woocommerce-NoticeGroup .woocommerce-error,
+body.woocommerce-checkout form.checkout .woocommerce-NoticeGroup .woocommerce-message {
+    border-radius: var(--exc-co-radius) !important;
+    box-shadow: none !important;
+}
+body.woocommerce-checkout form.checkout .woocommerce-NoticeGroup {
+    margin: 0 0 24px;
+}
+
+
+/* ---------------------------------------------------
+   4. LAYOUT: details on the left, order on the right
+   The order card is not sticky, so the Place order
+   button is always reachable however long the form is.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px 32px;
+    align-items: start;
+}
+body.woocommerce-checkout form.checkout > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+@media (min-width: 1024px) {
+    body.woocommerce-checkout form.checkout {
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    }
+    body.woocommerce-checkout form.checkout > #customer_details {
+        grid-column: 1;
+    }
+    body.woocommerce-checkout form.checkout > #order_review {
+        grid-column: 2;
+    }
+}
+
+body.woocommerce-checkout form.checkout #customer_details,
+body.woocommerce-checkout form.checkout #customer_details > .col-1,
+body.woocommerce-checkout form.checkout #customer_details > .col-2 {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    float: none;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+body.woocommerce-checkout form.checkout #customer_details::before,
+body.woocommerce-checkout form.checkout #customer_details::after {
+    content: none;
+    display: none;
+}
+
+
+/* ---------------------------------------------------
+   5. CARDS
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields,
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields,
+body.woocommerce-checkout form.checkout .woocommerce-additional-fields,
+body.woocommerce-checkout form.checkout .woocommerce-account-fields,
+body.woocommerce-checkout form.checkout #order_review {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 24px;
+    background: var(--exc-white);
+    border: 1px solid var(--exc-co-line);
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+}
+body.woocommerce-checkout form.checkout #order_review {
+    padding: 20px 24px 24px;
+}
+
+/* No empty cards, e.g. when no delivery address is needed */
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields:not(:has(> *)),
+body.woocommerce-checkout form.checkout .woocommerce-additional-fields:not(:has(> *)),
+body.woocommerce-checkout form.checkout .woocommerce-account-fields:not(:has(> *)) {
+    display: none;
+}
+
+/* "Deliver to a different address?" sits as a slim row
+   until ticked, then its fields open inside the same card. */
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields {
+    padding: 16px 24px;
+}
+body.woocommerce-checkout form.checkout h3#ship-to-different-address {
+    display: block;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.4;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout form.checkout h3#ship-to-different-address::before,
+body.woocommerce-checkout form.checkout h3#ship-to-different-address::after {
+    content: none;
+    display: none;
+}
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields .shipping_address {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--exc-co-line);
+}
+
+
+/* ---------------------------------------------------
+   6. FIELD LAYOUT
+   A two-column grid instead of floats, so a field with an
+   error message can never knock the next row out of line.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper,
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper,
+body.woocommerce-checkout form.checkout .woocommerce-additional-fields__field-wrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px 16px;
+}
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > *,
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper > *,
+body.woocommerce-checkout form.checkout .woocommerce-additional-fields__field-wrapper > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > .form-row-first,
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper > .form-row-first {
+    grid-column: 1;
+}
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > .form-row-last,
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper > .form-row-last {
+    grid-column: 2;
+}
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > .clear,
+body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper > .clear {
+    display: none;
+}
+
+body.woocommerce-checkout form.checkout .form-row {
+    float: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ---------------------------------------------------
+   7. LABELS AND INPUTS
+   Field borders are a mid grey so every box is visible
+   at a glance. Filled fields no longer turn green; only
+   errors are coloured.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout .form-row label {
+    display: block;
+    margin: 0 0 8px;
+    font-family: var(--exc-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout form.checkout .form-row label .optional {
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--exc-muted);
+}
+body.woocommerce-checkout form.checkout .form-row label abbr.required,
+body.woocommerce-checkout form.checkout .form-row label .required {
+    margin-left: 2px;
+    color: var(--exc-purple);
+    text-decoration: none;
+    border: 0;
+}
+
+body.woocommerce-checkout form.checkout .form-row .input-text,
+body.woocommerce-checkout form.checkout .form-row select,
+body.woocommerce-checkout form.checkout .form-row .select2-container .select2-selection--single {
+    box-sizing: border-box;
+    width: 100%;
+    height: 46px;
+    margin: 0;
+    padding: 0 14px;
+    background-color: var(--exc-white);
+    color: var(--exc-ink);
+    border: 1px solid var(--exc-co-field);
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+    outline: none;
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    line-height: 1.4;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+body.woocommerce-checkout form.checkout .form-row select {
+    padding-right: 36px;
+    text-overflow: ellipsis;
+}
+body.woocommerce-checkout form.checkout .form-row textarea.input-text {
+    height: auto;
+    min-height: 110px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+body.woocommerce-checkout form.checkout .form-row .input-text::placeholder {
+    color: var(--exc-muted-light);
+    opacity: 1;
+}
+
+body.woocommerce-checkout form.checkout .form-row .input-text:focus,
+body.woocommerce-checkout form.checkout .form-row select:focus,
+body.woocommerce-checkout form.checkout .form-row .select2-container--focus .select2-selection--single,
+body.woocommerce-checkout form.checkout .form-row .select2-container--open .select2-selection--single {
+    border-color: var(--exc-purple);
+    box-shadow: 0 0 0 3px var(--exc-purple-soft);
+}
+
+/* Filled and valid: stay neutral */
+body.woocommerce-checkout form.checkout .form-row.woocommerce-validated input.input-text,
+body.woocommerce-checkout form.checkout .form-row.woocommerce-validated select,
+body.woocommerce-checkout form.checkout .form-row.woocommerce-validated .select2-container .select2-selection {
+    border-color: var(--exc-co-field);
+}
+/* Errors */
+body.woocommerce-checkout form.checkout .form-row.woocommerce-invalid input.input-text,
+body.woocommerce-checkout form.checkout .form-row.woocommerce-invalid select,
+body.woocommerce-checkout form.checkout .form-row.woocommerce-invalid .select2-container .select2-selection {
+    border-color: #c0392b;
+}
+body.woocommerce-checkout form.checkout .form-row.woocommerce-invalid label {
+    color: #c0392b;
+}
+
+/* Select2 country / county dropdowns */
+body.woocommerce-checkout form.checkout .form-row .select2-container {
+    width: 100% !important;
+}
+body.woocommerce-checkout form.checkout .form-row .select2-container .select2-selection--single .select2-selection__rendered {
+    padding: 0;
+    line-height: 44px;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout form.checkout .form-row .select2-container .select2-selection--single .select2-selection__arrow {
+    top: 0;
+    right: 10px;
+    height: 44px;
+}
+body.woocommerce-checkout .select2-dropdown {
+    border: 1px solid var(--exc-purple);
+    border-radius: var(--exc-co-radius);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    font-family: var(--exc-sans);
+    overflow: hidden;
+}
+body.woocommerce-checkout .select2-results__option {
+    padding: 9px 14px;
+    font-size: 14px;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout .select2-container--default .select2-results__option--highlighted[aria-selected],
+body.woocommerce-checkout .select2-container--default .select2-results__option--highlighted[data-selected] {
+    background: var(--exc-purple-soft);
+    color: var(--exc-purple);
+}
+body.woocommerce-checkout .select2-search--dropdown .select2-search__field {
+    box-sizing: border-box;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--exc-co-field);
+    border-radius: var(--exc-co-radius);
+    font-size: 14px;
+    outline: none;
+}
+body.woocommerce-checkout .select2-search--dropdown .select2-search__field:focus {
+    border-color: var(--exc-purple);
+}
+
+
+/* ---------------------------------------------------
+   8. CHECKBOXES
+   Ship to a different address, mailing opt-in, create
+   account, terms. The tick is an image, so it shows in
+   every browser.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 0 0 18px;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    background: var(--exc-white) center / 14px 14px no-repeat;
+    border: 1.5px solid var(--exc-co-field);
+    border-radius: 3px;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+body.woocommerce-checkout form.checkout input[type="checkbox"]:checked {
+    background-color: var(--exc-purple);
+    background-image: var(--exc-co-tick);
+    border-color: var(--exc-purple);
+}
+body.woocommerce-checkout form.checkout input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+
+/* Any label wrapping a checkbox reads as normal text */
+body.woocommerce-checkout form.checkout label.woocommerce-form__label-for-checkbox,
+body.woocommerce-checkout form.checkout .form-row label:has(> input[type="checkbox"]) {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1.4;
+    color: var(--exc-ink);
+    cursor: pointer;
+}
+body.woocommerce-checkout form.checkout label.woocommerce-form__label-for-checkbox input[type="checkbox"],
+body.woocommerce-checkout form.checkout .form-row label:has(> input[type="checkbox"]) input[type="checkbox"] {
+    margin-top: 1px;
+}
+body.woocommerce-checkout form.checkout h3#ship-to-different-address label.woocommerce-form__label-for-checkbox {
+    align-items: center;
+    font-weight: 600;
+}
+
+
+/* ---------------------------------------------------
+   9. YOUR ORDER: line items and totals
+   Same row treatment as the basket totals: every rule
+   runs the full width of the card.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table > thead,
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table > tbody,
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table > tfoot {
+    display: block;
+}
+
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--exc-co-line);
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table th,
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table td {
+    display: block;
+    width: auto;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--exc-ink);
+}
+
+/* Column headings */
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table thead tr {
+    padding: 0 0 10px;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table thead th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--exc-muted);
+}
+
+/* Line items */
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table td.product-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-weight: 600;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table td.product-name .product-quantity {
+    margin-left: 4px;
+    font-weight: 700;
+    color: var(--exc-purple);
+    white-space: nowrap;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table td.product-name dl.variation {
+    margin: 4px 0 0;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--exc-muted);
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table td.product-total {
+    flex: 0 0 auto;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Totals */
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tfoot th {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--exc-muted);
+    text-align: left;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tfoot td {
+    margin-left: auto;
+    font-weight: 600;
+    text-align: right;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.cart-discount td a {
+    margin-left: 6px;
+    font-size: 12px;
+    color: var(--exc-purple);
+    text-decoration: none;
+}
+
+/* Shipping row stacks: label, then full-width options */
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.woocommerce-shipping-totals {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.woocommerce-shipping-totals > th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.woocommerce-shipping-totals > td {
+    margin-left: 0;
+    font-weight: 400;
+    text-align: left;
+}
+
+/* Order total */
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.order-total {
+    padding: 16px 0 0;
+    border-bottom: 0;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.order-total th {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--exc-ink);
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.order-total td {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--exc-purple);
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.order-total td strong {
+    font-weight: inherit;
+}
+body.woocommerce-checkout form.checkout #order_review table.woocommerce-checkout-review-order-table tr.order-total small.includes_tax {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--exc-muted);
+}
+
+
+/* ---------------------------------------------------
+   10. SHIPPING OPTIONS (same cards as the basket)
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--exc-white);
+    border: 1px solid var(--exc-co-line);
+    border-radius: var(--exc-co-radius);
+    line-height: 1.35;
+    list-style: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method li:hover {
+    border-color: var(--exc-purple-line);
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method li:has(input:checked) {
+    background: var(--exc-purple-soft);
+    border-color: var(--exc-purple);
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--exc-ink);
+    cursor: pointer;
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method label .amount {
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--exc-purple);
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------
+   11. RADIO BUTTONS (shipping and payment)
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method input[type="radio"],
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li > input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 0 0 18px;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    background: var(--exc-white);
+    border: 1.5px solid var(--exc-co-field);
+    border-radius: 50%;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: border-color 0.15s ease, border-width 0.1s ease;
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method input[type="radio"]:checked,
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li > input[type="radio"]:checked {
+    border: 5px solid var(--exc-purple);
+}
+body.woocommerce-checkout form.checkout #order_review ul#shipping_method input[type="radio"]:focus-visible,
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li > input[type="radio"]:focus-visible {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------
+   12. PAYMENT
+   One flat card per method. The card details and Klarna
+   panel inside are the payment plugin's own and left
+   alone; only the boxes WooCommerce wraps round them go.
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout #payment {
+    margin: 20px 0 0;
+    padding: 20px 0 0;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--exc-co-line);
+    border-radius: 0;
+}
+
+body.woocommerce-checkout form.checkout #payment ul.payment_methods {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 20px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    list-style: none;
+}
+body.woocommerce-checkout form.checkout #payment ul.payment_methods::before,
+body.woocommerce-checkout form.checkout #payment ul.payment_methods::after {
+    content: none;
+    display: none;
+}
+
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li {
+    margin: 0;
+    padding: 14px 16px;
+    background: var(--exc-white);
+    border: 1px solid var(--exc-co-line);
+    border-radius: var(--exc-co-radius);
+    font-family: var(--exc-sans);
+    line-height: 1.4;
+    list-style: none;
+    text-align: left;
+    transition: border-color 0.15s ease;
+}
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li:hover {
+    border-color: var(--exc-purple-line);
+}
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li:has(> input:checked) {
+    border-color: var(--exc-purple);
+}
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li > input[type="radio"] {
+    margin: 0 10px 0 0;
+}
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li > label {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--exc-ink);
+    vertical-align: middle;
+    cursor: pointer;
+}
+body.woocommerce-checkout form.checkout #payment ul.payment_methods > li > label img {
+    display: inline-block;
+    float: none;
+    width: auto;
+    max-height: 22px;
+    margin: 0 0 0 8px;
+    vertical-align: middle;
+}
+
+body.woocommerce-checkout form.checkout #payment div.payment_box {
+    margin: 12px 0 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--exc-muted);
+}
+body.woocommerce-checkout form.checkout #payment div.payment_box::before {
+    content: none;
+    display: none;
+}
+body.woocommerce-checkout form.checkout #payment div.payment_box p:last-child {
+    margin-bottom: 0;
+}
+body.woocommerce-checkout form.checkout #payment div.payment_box fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+body.woocommerce-checkout form.checkout #payment div.form-row.place-order {
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ---------------------------------------------------
+   13. PRIVACY, TERMS AND PLACE ORDER
+   --------------------------------------------------- */
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper {
+    margin: 0 0 16px;
+    padding: 0;
+    background: none;
+}
+body.woocommerce-checkout form.checkout .woocommerce-privacy-policy-text p {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--exc-muted);
+}
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper a {
+    color: var(--exc-purple);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--exc-purple-line);
+}
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper a:hover {
+    border-bottom-color: var(--exc-purple);
+}
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper .form-row.validate-required {
+    padding: 12px 14px;
+    background: var(--exc-off-white);
+    border: 1px solid var(--exc-co-line);
+    border-radius: var(--exc-co-radius);
+}
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper .form-row.woocommerce-invalid {
+    border-color: #c0392b;
+}
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper label.woocommerce-form__label-for-checkbox {
+    font-size: 13px;
+    font-weight: 600;
+}
+body.woocommerce-checkout form.checkout .woocommerce-terms-and-conditions-wrapper .woocommerce-terms-and-conditions {
+    margin: 0 0 12px;
+    padding: 14px;
+    border: 1px solid var(--exc-co-line);
+    border-radius: var(--exc-co-radius);
+    font-size: 13px;
+}
+
+body.woocommerce-checkout form.checkout #payment #place_order {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    float: none;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 18px 20px;
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border: 1px solid var(--exc-purple);
+    border-radius: var(--exc-co-radius);
+    box-shadow: none;
+    text-shadow: none;
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+body.woocommerce-checkout form.checkout #payment #place_order:hover {
+    background: var(--exc-purple-dark);
+    border-color: var(--exc-purple-dark);
+    color: var(--exc-white);
+}
+body.woocommerce-checkout form.checkout #payment #place_order:focus-visible {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+body.woocommerce-checkout form.checkout #payment #place_order:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* ---------------------------------------------------
+   14. MOBILE
+   --------------------------------------------------- */
+@media (max-width: 767px) {
+    body.woocommerce-checkout .woocommerce:has(> form.checkout) {
+        margin: 24px auto 56px;
+        padding: 0 16px;
+    }
+
+    body.woocommerce-checkout form.checkout .woocommerce-billing-fields,
+    body.woocommerce-checkout form.checkout .woocommerce-additional-fields,
+    body.woocommerce-checkout form.checkout .woocommerce-account-fields,
+    body.woocommerce-checkout form.checkout #order_review {
+        padding: 20px 16px;
+    }
+    body.woocommerce-checkout form.checkout .woocommerce-shipping-fields {
+        padding: 14px 16px;
+    }
+
+    body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > .form-row-first,
+    body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > .form-row-last,
+    body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper > .form-row-first,
+    body.woocommerce-checkout form.checkout .woocommerce-shipping-fields__field-wrapper > .form-row-last {
+        grid-column: 1 / -1;
+    }
+
+    body.woocommerce-checkout .woocommerce form.checkout_coupon .form-row-first,
+    body.woocommerce-checkout .woocommerce form.checkout_coupon .form-row-last {
+        float: none;
+        width: 100%;
+    }
+    body.woocommerce-checkout .woocommerce form.checkout_coupon .form-row-first {
+        margin-bottom: 10px;
+    }
+}
