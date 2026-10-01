@@ -32,7 +32,8 @@
  *
  * The search results page, for its own Elementor template (condition:
  * Search Results). Same filters, bar, cards and pagination, with a
- * search box in the hero and a proper "no results" page. Results are
+ * "Results for ..." hero and a proper "no results" page. (No extra
+ * search box: the site header already has one.) Results are
  * whatever the Search SKU snippet matches (titles and SKUs); this adds
  * WooCommerce's "hide from search" visibility, the shop's page size and
  * the sort menu, which WooCommerce does not apply to this site's search.
@@ -1179,16 +1180,6 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
 
     /* ---------- [exc_search]: the search results page ---------- */
 
-    function exc_search_box_html( $term ) {
-        // Tag name passed in, as with the filter panel, for the firewall.
-        return sprintf(
-            '<%1$s class="exc-search__form" role="search" method="get" action="%2$s"><label class="exc-pf-sr" for="exc-search-q">Search products</label><input type="search" id="exc-search-q" class="exc-search__input" name="s" value="%3$s" placeholder="Search products, colours or SKUs" autocomplete="off"><button type="submit" class="exc-search__btn">Search</button></%1$s>',
-            'form',
-            esc_url( home_url( '/' ) ),
-            esc_attr( $term )
-        );
-    }
-
     function exc_search_hero_html( $count ) {
         $ctx  = exc_pf_context();
         $term = (string) $ctx['search'];
@@ -1200,7 +1191,6 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
             . '<nav class="exc-archive__crumbs" aria-label="Breadcrumb"><ol><li><a href="' . esc_url( home_url( '/' ) ) . '">Home</a></li><li aria-current="page">Search</li></ol></nav>'
             . '<h1 class="exc-archive__title">' . $h1 . '</h1>'
             . ( $count > 0 ? '<p class="exc-archive__meta">' . esc_html( number_format_i18n( $count ) ) . ( 1 === $count ? ' product' : ' products' ) . '</p>' : '' )
-            . exc_search_box_html( $term )
             . '</header>';
     }
 
