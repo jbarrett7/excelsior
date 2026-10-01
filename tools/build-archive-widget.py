@@ -1,6 +1,10 @@
-"""Build templates/archive-html-widget.html: the archive CSS (comments
-stripped) in a <style> block, then the [exc_archive] shortcode with the
-outro, ready to paste into one Elementor HTML widget.
+"""Build the single-HTML-widget files from the CSS snippet:
+
+  templates/archive-html-widget.html  styles + [exc_archive] + outro
+  templates/search-html-widget.html   styles + [exc_search]
+
+Each is the archive CSS (comments stripped) in a <style> block followed
+by the shortcode content from the matching *-shortcode-widget.txt file.
 
 Run from the repo root:  python3 tools/build-archive-widget.py
 """
@@ -11,8 +15,11 @@ css = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
 css = '\n'.join(line.rstrip() for line in css.splitlines())
 css = re.sub(r'\n{2,}', '\n', css).strip()
 assert '</style' not in css
+style = '<style id="exc-product-archive-css">\n' + css + '\n</style>\n'
 
-shortcode = open('templates/archive-shortcode-widget.txt').read().strip()
-out = '<style id="exc-product-archive-css">\n' + css + '\n</style>\n' + shortcode + '\n'
-open('templates/archive-html-widget.html', 'w').write(out)
-print('templates/archive-html-widget.html:', len(out), 'bytes')
+for name in ('archive', 'search'):
+    shortcode = open('templates/%s-shortcode-widget.txt' % name).read().strip()
+    out = style + shortcode + '\n'
+    path = 'templates/%s-html-widget.html' % name
+    open(path, 'w').write(out)
+    print(path + ':', len(out), 'bytes')

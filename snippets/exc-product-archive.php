@@ -22,6 +22,17 @@
  *   paging    WooCommerce pagination (?paged=N on .html URLs)
  *   about     whatever HTML sits between the shortcode tags
  *
+ *   [exc_search]
+ *     optional HTML for the bottom of the page
+ *   [/exc_search]
+ *
+ * The search results page, for its own Elementor template (condition:
+ * Search Results). Same filters, bar, cards and pagination, with a
+ * search box in the hero and a proper "no results" page. Results are
+ * whatever the Search SKU snippet matches (titles and SKUs); this adds
+ * WooCommerce's "hide from search" visibility, the shop's page size and
+ * the sort menu, which WooCommerce does not apply to this site's search.
+ *
  * Filters reload the page with the choices in the address (no AJAX),
  * so back, pagination, sorting and shared links all just work.
  *
@@ -74,6 +85,8 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
                 'wc_get_template_part', 'woocommerce_catalog_ordering', 'have_posts', 'the_post',
                 'rewind_posts', 'wp_reset_postdata', 'remove_action', 'do_action', 'wpautop',
                 'wp_kses_post', 'do_shortcode', 'wc_get_page_id', 'get_post', 'home_url',
+                'is_search', 'is_admin', 'get_search_query', 'get_query_var', 'urlencode_deep',
+                'wc_get_default_products_per_row', 'wc_get_default_product_rows_per_page', 'apply_filters',
             );
             foreach ( $needs as $fn ) {
                 if ( ! function_exists( $fn ) ) {
@@ -85,8 +98,12 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         return $ok;
     }
 
+    function exc_pf_is_search() {
+        return exc_pf_ready() && is_search() && ! is_admin();
+    }
+
     function exc_pf_is_listing() {
-        return exc_pf_ready() && ( is_shop() || is_product_category() || is_product_tag() );
+        return exc_pf_ready() && ( is_shop() || is_product_category() || is_product_tag() || exc_pf_is_search() );
     }
 
     function exc_pf_keys() {
@@ -144,7 +161,17 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         if ( null !== $ctx ) {
             return $ctx;
         }
-        $ctx = array( 'tax' => '', 'term' => null, 'url' => '' );
+        $ctx = array( 'tax' => '', 'term' => null, 'url' => '', 'search' => null, 'within' => null );
+        if ( is_search() ) {
+            // Search SKU narrows the main query to its title and SKU
+            // matches with post__in; those are this page's products.
+            global $wp_query;
+            $ctx['search'] = trim( (string) get_search_query( false ) );
+            $matches       = ( $wp_query instanceof WP_Query ) ? (array) $wp_query->get( 'post__in' ) : array();
+            $ctx['within'] = $matches ? $matches : null;
+            $ctx['url']    = add_query_arg( 's', urlencode_deep( $ctx['search'] ), home_url( '/' ) );
+            return $ctx;
+        }
         if ( is_product_category() || is_product_tag() ) {
             $term = get_queried_object();
             if ( $term && isset( $term->taxonomy ) ) {
@@ -243,6 +270,73 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         }
     }
 
+    // Products WooCommerce hides from the catalogue, or from search.
+    function exc_pf_visibility_clause( $for_search ) {
+        $vis = wc_get_product_visibility_term_ids();
+        $key = $for_search ? 'exclude-from-search' : 'exclude-from-catalog';
+        $not = array();
+        if ( ! empty( $vis[ $key ] ) ) {
+            $not[] = (int) $vis[ $key ];
+        }
+        if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) && ! empty( $vis['outofstock'] ) ) {
+            $not[] = (int) $vis['outofstock'];
+        }
+        return $not ? array( 'taxonomy' => 'product_visibility', 'field' => 'term_taxonomy_id', 'terms' => $not, 'operator' => 'NOT IN' ) : null;
+    }
+
+    /* ---------- Search results query ---------- */
+
+    // WooCommerce does not treat this site's search as a product query,
+    // so filters, visibility, page size and sorting are applied here.
+    // Runs after Search SKU (priority 10) has set its matches.
+    function exc_pf_apply_search_query( $q ) {
+        if ( ! exc_pf_ready() || is_admin() || ! ( $q instanceof WP_Query ) || ! $q->is_main_query() || ! $q->is_search() ) {
+            return;
+        }
+        if ( 'product_query' === $q->get( 'wc_query' ) ) {
+            return; // WooCommerce is handling it; exc_pf_apply_main_query covers filters.
+        }
+
+        $req = exc_pf_request();
+        $tax = (array) $q->get( 'tax_query' );
+        $vis = exc_pf_visibility_clause( true );
+        if ( $vis ) {
+            $tax[] = $vis;
+        }
+        foreach ( array( 'cats', 'instock', 'collection' ) as $k ) {
+            $clause = exc_pf_clause( $k, $req );
+            if ( $clause ) {
+                $tax[] = $clause;
+            }
+        }
+        $q->set( 'tax_query', $tax );
+
+        $price = exc_pf_price_clause( $req );
+        if ( $price ) {
+            $meta   = (array) $q->get( 'meta_query' );
+            $meta[] = $price;
+            $q->set( 'meta_query', $meta );
+        }
+
+        $q->set( 'posts_per_page', (int) apply_filters( 'loop_shop_per_page', wc_get_default_products_per_row() * wc_get_default_product_rows_per_page() ) );
+
+        $orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : '';
+        $sorts   = array(
+            'date'       => array( 'date', 'DESC', '' ),
+            'price'      => array( 'meta_value_num', 'ASC', '_price' ),
+            'price-desc' => array( 'meta_value_num', 'DESC', '_price' ),
+            'popularity' => array( 'meta_value_num', 'DESC', 'total_sales' ),
+            'rating'     => array( 'meta_value_num', 'DESC', '_wc_average_rating' ),
+        );
+        if ( isset( $sorts[ $orderby ] ) ) {
+            $q->set( 'orderby', $sorts[ $orderby ][0] );
+            $q->set( 'order', $sorts[ $orderby ][1] );
+            if ( '' !== $sorts[ $orderby ][2] ) {
+                $q->set( 'meta_key', $sorts[ $orderby ][2] );
+            }
+        }
+    }
+
     /* ---------- Counts and price range for the panel ---------- */
 
     // Product IDs in this archive (as the shop shows it), plus extra clauses.
@@ -257,16 +351,9 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
                 'include_children' => true,
             );
         }
-        $vis = wc_get_product_visibility_term_ids();
-        $not = array();
-        if ( ! empty( $vis['exclude-from-catalog'] ) ) {
-            $not[] = (int) $vis['exclude-from-catalog'];
-        }
-        if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) && ! empty( $vis['outofstock'] ) ) {
-            $not[] = (int) $vis['outofstock'];
-        }
-        if ( $not ) {
-            $tax[] = array( 'taxonomy' => 'product_visibility', 'field' => 'term_taxonomy_id', 'terms' => $not, 'operator' => 'NOT IN' );
+        $vis_clause = exc_pf_visibility_clause( null !== $ctx['search'] );
+        if ( $vis_clause ) {
+            $tax[] = $vis_clause;
         }
         foreach ( $extra_tax as $clause ) {
             if ( $clause ) {
@@ -288,6 +375,13 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         );
         if ( $meta ) {
             $args['meta_query'] = array( $meta );
+        }
+        if ( null !== $ctx['search'] ) {
+            if ( null !== $ctx['within'] ) {
+                $within = ( null === $within ) ? $ctx['within'] : array_values( array_intersect( $within, $ctx['within'] ) );
+            } else {
+                $args['s'] = $ctx['search'];
+            }
         }
         if ( null !== $within ) {
             $args['post__in'] = $within ? $within : array( 0 );
@@ -856,6 +950,9 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         if ( isset( $_GET['orderby'] ) ) {
             $keep .= sprintf( '<input type="hidden" name="orderby" value="%s">', esc_attr( sanitize_key( wp_unslash( $_GET['orderby'] ) ) ) );
         }
+        if ( null !== $ctx['search'] ) {
+            $keep .= sprintf( '<input type="hidden" name="s" value="%s">', esc_attr( $ctx['search'] ) );
+        }
         $keep .= '<input type="hidden" name="cats" value="" data-exc-pf-cats disabled>';
 
         $head = sprintf(
@@ -1006,36 +1103,128 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         wp_reset_postdata();
     }
 
-    function exc_archive_shortcode( $atts = array(), $content = '' ) {
-        if ( ! exc_pf_is_listing() ) {
-            // Placeholder in the Elementor editor; nothing anywhere else.
-            return isset( $_GET['elementor-preview'] )
-                ? '<div class="exc-archive-placeholder">Product archive: hero, filters, products and pagination render here on the live site.</div>'
-                : '';
-        }
-
-        wc_setup_loop();
-        $d        = exc_pf_data();
+    // Hero, filters, bar, products, pagination and the optional About HTML.
+    function exc_archive_page( $hero, $content, $extra_class = '' ) {
         $panel    = exc_pf_panel_shortcode();
         $ordering = exc_pf_capture( function () { woocommerce_catalog_ordering(); } );
         $products = exc_pf_capture( function () { exc_archive_loop(); } );
         exc_pf_enqueue_once();
 
-        $about = '';
-        if ( '' !== trim( (string) $content ) ) {
-            $about = '<section class="exc-archive__about">' . do_shortcode( $content ) . '</section>';
-        }
-
-        return '<div class="exc-archive' . ( $panel ? ' has-filters' : '' ) . '">'
-            . exc_archive_hero_html( count( $d['base'] ) )
+        return '<div class="exc-archive' . $extra_class . ( $panel ? ' has-filters' : '' ) . '">'
+            . $hero
             . '<div class="exc-archive__layout">'
             . ( $panel ? '<div class="exc-archive__side">' . $panel . '</div>' : '' )
             . '<div class="exc-archive__main">'
             . exc_pf_bar_html( $ordering )
             . '<div class="exc-archive__grid">' . $products . '</div>'
             . '</div></div>'
-            . $about
+            . exc_archive_about_html( $content )
             . '</div>';
+    }
+
+    function exc_archive_about_html( $content ) {
+        return ( '' !== trim( (string) $content ) )
+            ? '<section class="exc-archive__about">' . do_shortcode( $content ) . '</section>'
+            : '';
+    }
+
+    function exc_archive_placeholder( $what ) {
+        // Placeholder in the Elementor editor; nothing anywhere else.
+        return isset( $_GET['elementor-preview'] )
+            ? '<div class="exc-archive-placeholder">' . esc_html( $what ) . ' render here on the live site.</div>'
+            : '';
+    }
+
+    function exc_archive_shortcode( $atts = array(), $content = '' ) {
+        if ( ! exc_pf_is_listing() || exc_pf_is_search() ) {
+            return exc_archive_placeholder( 'Product archive: hero, filters, products and pagination' );
+        }
+        wc_setup_loop();
+        $d = exc_pf_data();
+        return exc_archive_page( exc_archive_hero_html( count( $d['base'] ) ), $content );
+    }
+
+    /* ---------- [exc_search]: the search results page ---------- */
+
+    function exc_search_box_html( $term ) {
+        // Tag name passed in, as with the filter panel, for the firewall.
+        return sprintf(
+            '<%1$s class="exc-search__form" role="search" method="get" action="%2$s"><label class="exc-pf-sr" for="exc-search-q">Search products</label><input type="search" id="exc-search-q" class="exc-search__input" name="s" value="%3$s" placeholder="Search products, colours or SKUs" autocomplete="off"><button type="submit" class="exc-search__btn">Search</button></%1$s>',
+            'form',
+            esc_url( home_url( '/' ) ),
+            esc_attr( $term )
+        );
+    }
+
+    function exc_search_hero_html( $count ) {
+        $ctx  = exc_pf_context();
+        $term = (string) $ctx['search'];
+        $h1   = $count > 0
+            ? 'Results for &ldquo;' . esc_html( $term ) . '&rdquo;'
+            : 'No results for &ldquo;' . esc_html( $term ) . '&rdquo;';
+
+        return '<header class="exc-archive__hero exc-search__hero">'
+            . '<nav class="exc-archive__crumbs" aria-label="Breadcrumb"><ol><li><a href="' . esc_url( home_url( '/' ) ) . '">Home</a></li><li aria-current="page">Search</li></ol></nav>'
+            . '<h1 class="exc-archive__title">' . $h1 . '</h1>'
+            . ( $count > 0 ? '<p class="exc-archive__meta">' . esc_html( number_format_i18n( $count ) ) . ( 1 === $count ? ' product' : ' products' ) . '</p>' : '' )
+            . exc_search_box_html( $term )
+            . '</header>';
+    }
+
+    function exc_search_empty_html() {
+        $cats = get_terms( array(
+            'taxonomy'   => 'product_cat',
+            'parent'     => 0,
+            'hide_empty' => true,
+            'number'     => 8,
+            'orderby'    => 'count',
+            'order'      => 'DESC',
+        ) );
+        $links = '';
+        if ( ! is_wp_error( $cats ) ) {
+            $skip = (int) get_option( 'default_product_cat' );
+            foreach ( $cats as $c ) {
+                if ( (int) $c->term_id === $skip ) {
+                    continue;
+                }
+                $link = get_term_link( $c );
+                if ( ! is_wp_error( $link ) ) {
+                    $links .= '<li><a class="exc-search__cat" href="' . esc_url( $link ) . '">' . esc_html( $c->name ) . '</a></li>';
+                }
+            }
+        }
+        return '<div class="exc-search__empty">'
+            . '<p class="exc-search__empty-lede">We couldn&rsquo;t find a match. Try fewer or different words, check the spelling, or search by SKU.</p>'
+            . ( $links ? '<p class="exc-search__empty-label">Popular categories</p><ul class="exc-search__cats">' . $links . '</ul>' : '' )
+            . '<p class="exc-search__empty-help">Still stuck? Call <a href="tel:01213081329">0121 308 1329</a> and we&rsquo;ll help you find it.</p>'
+            . '</div>';
+    }
+
+    function exc_search_shortcode( $atts = array(), $content = '' ) {
+        if ( ! exc_pf_is_search() ) {
+            return exc_archive_placeholder( 'Search results: search box, filters, products and pagination' );
+        }
+        global $wp_query;
+        $per_page = (int) $wp_query->get( 'posts_per_page' );
+        wc_setup_loop( array(
+            'is_search'    => true,
+            'is_paginated' => true,
+            'total'        => (int) $wp_query->found_posts,
+            'total_pages'  => (int) $wp_query->max_num_pages,
+            'per_page'     => $per_page > 0 ? $per_page : 12,
+            'current_page' => max( 1, (int) get_query_var( 'paged' ) ),
+        ) );
+
+        $d = exc_pf_data();
+        if ( ! $d['base'] ) {
+            // Nothing matches the search at all: no filters to offer.
+            return '<div class="exc-archive exc-search">'
+                . exc_search_hero_html( 0 )
+                . exc_search_empty_html()
+                . exc_archive_about_html( $content )
+                . '</div>';
+        }
+        return exc_archive_page( exc_search_hero_html( count( $d['base'] ) ), $content, ' exc-search' );
     }
 
     /* ---------- SEO ---------- */
@@ -1069,6 +1258,8 @@ add_action( 'woocommerce_product_query', 'exc_pf_apply_main_query', 20 );
 add_shortcode( 'exc_product_filters', 'exc_pf_panel_shortcode' );
 add_shortcode( 'exc_filter_bar', 'exc_pf_bar_shortcode' );
 add_shortcode( 'exc_archive', 'exc_archive_shortcode' );
+add_shortcode( 'exc_search', 'exc_search_shortcode' );
+add_action( 'pre_get_posts', 'exc_pf_apply_search_query', 50 );
 add_filter( 'rank_math/frontend/robots', 'exc_pf_rank_math_robots', 20 );
 add_filter( 'wp_robots', 'exc_pf_wp_robots', 20 );
 add_filter( 'rank_math/frontend/canonical', 'exc_pf_canonical', 20 );
