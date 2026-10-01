@@ -1,0 +1,869 @@
+/* ===================================================
+   EXC Product Filters CSS (v1, 1 Oct 2026)
+   WPCode: CSS Snippet. Auto Insert, Site Wide Header, priority 10.
+   Styles the [exc_product_filters] panel and [exc_filter_bar] from the
+   "EXC Product Filters" PHP snippet. Uses the Design Tokens snippet.
+
+   Desktop (1025px and up): sticky sidebar panel.
+   Tablet and phone: the panel becomes a drawer from the left, opened
+   by the Filters button in the bar above the products.
+   =================================================== */
+
+.exc-pf,
+.exc-pf-bar,
+.exc-pf-backdrop {
+    --pf-line: #e6e4e8;
+    --pf-field: #c9c6cc;
+    --pf-radius: var(--exc-radius-md, 8px);
+    --pf-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.exc-pf-sr {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------
+   1. PANEL
+   --------------------------------------------------- */
+.exc-pf {
+    box-sizing: border-box;
+    font-family: var(--exc-sans);
+    color: var(--exc-ink);
+    background: var(--exc-white);
+    border: 1px solid var(--pf-line);
+    border-radius: var(--exc-radius-lg, 12px);
+}
+.exc-pf *,
+.exc-pf *::before,
+.exc-pf *::after {
+    box-sizing: border-box;
+}
+.exc-pf__form {
+    margin: 0;
+}
+
+@media (min-width: 1025px) {
+    .exc-pf {
+        position: sticky;
+        top: 100px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+    }
+}
+
+/* Header: title, active count, Clear all */
+.exc-pf__head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px 16px;
+    background: var(--exc-white);
+    border-bottom: 1px solid var(--pf-line);
+    border-radius: var(--exc-radius-lg, 12px) var(--exc-radius-lg, 12px) 0 0;
+}
+.exc-pf__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--exc-ink);
+}
+.exc-pf__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1;
+}
+.exc-pf__clear {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--exc-purple);
+    text-decoration: none;
+    border-bottom: 1px solid var(--exc-purple-line);
+    transition: border-color 0.15s ease;
+}
+.exc-pf__clear:hover {
+    border-bottom-color: var(--exc-purple);
+}
+.exc-pf__close {
+    display: none;
+}
+
+/* Groups */
+.exc-pf__group {
+    border-bottom: 1px solid var(--pf-line);
+}
+.exc-pf__group:last-child {
+    border-bottom: 0;
+}
+.exc-pf__summary {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 16px 44px 16px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--exc-ink);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+.exc-pf__summary::-webkit-details-marker {
+    display: none;
+}
+.exc-pf__summary::after {
+    content: '';
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -5px;
+    border-right: 1.5px solid var(--exc-muted);
+    border-bottom: 1.5px solid var(--exc-muted);
+    transform: rotate(45deg);
+    transition: transform 0.2s var(--pf-ease);
+}
+.exc-pf__group:not([open]) > .exc-pf__summary::after {
+    transform: rotate(-45deg);
+}
+.exc-pf__summary:hover {
+    color: var(--exc-purple);
+}
+.exc-pf__note {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--exc-muted);
+}
+.exc-pf__body {
+    padding: 0 20px 18px;
+}
+
+
+/* ---------------------------------------------------
+   2. TOGGLES (Availability)
+   --------------------------------------------------- */
+.exc-pf__body--switches {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.exc-pf__switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 -10px;
+    padding: 8px 10px;
+    border-radius: var(--pf-radius);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.exc-pf__switch:hover {
+    background: var(--exc-purple-soft);
+}
+.exc-pf__switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+.exc-pf__switch-ui {
+    position: relative;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 20px;
+    background: #d8d5db;
+    border-radius: 999px;
+    transition: background 0.2s var(--pf-ease);
+}
+.exc-pf__switch-ui::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--exc-white);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s var(--pf-ease);
+}
+.exc-pf__switch input:checked + .exc-pf__switch-ui {
+    background: var(--exc-purple);
+}
+.exc-pf__switch input:checked + .exc-pf__switch-ui::after {
+    transform: translateX(16px);
+}
+.exc-pf__switch input:focus-visible + .exc-pf__switch-ui {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------
+   3. CATEGORY LIST
+   --------------------------------------------------- */
+.exc-pf .exc-pf__find {
+    display: block;
+    width: 100%;
+    height: 38px;
+    margin: 0 0 10px;
+    padding: 0 12px 0 34px;
+    background: var(--exc-off-white) no-repeat 12px center / 14px 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E");
+    border: 1px solid var(--pf-line);
+    border-radius: var(--pf-radius);
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    color: var(--exc-ink);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.exc-pf .exc-pf__find:focus {
+    background-color: var(--exc-white);
+    border-color: var(--exc-purple);
+    box-shadow: 0 0 0 3px var(--exc-purple-soft);
+}
+
+.exc-pf__list {
+    margin: 0 -10px;
+    padding: 0;
+    list-style: none;
+}
+.exc-pf__item {
+    margin: 0;
+    padding: 0;
+}
+.exc-pf__item.is-extra {
+    display: none;
+}
+.exc-pf__list.is-expanded .exc-pf__item.is-extra,
+.exc-pf__list.is-searching .exc-pf__item.is-extra {
+    display: block;
+}
+.exc-pf__item[hidden] {
+    display: none !important;
+}
+
+.exc-pf__check {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 10px;
+    border-radius: var(--pf-radius);
+    font-size: 14px;
+    line-height: 1.35;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.exc-pf__check:hover {
+    background: var(--exc-purple-soft);
+}
+.exc-pf__check input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+}
+.exc-pf__box {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    background: var(--exc-white) no-repeat center / 12px 12px;
+    border: 1.5px solid var(--pf-field);
+    border-radius: 5px;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.exc-pf__check:hover .exc-pf__box {
+    border-color: var(--exc-purple);
+}
+.exc-pf__check input:checked + .exc-pf__box {
+    background-color: var(--exc-purple);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    border-color: var(--exc-purple);
+}
+.exc-pf__check input:focus-visible + .exc-pf__box {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+.exc-pf__check input:checked ~ .exc-pf__label {
+    font-weight: 600;
+    color: var(--exc-purple);
+}
+
+.exc-pf__label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.exc-pf__count {
+    flex: 0 0 auto;
+    min-width: 28px;
+    padding: 2px 8px;
+    background: var(--exc-off-white);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--exc-muted);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.exc-pf__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 0;
+    padding: 4px 0;
+    background: none;
+    border: 0;
+    font-family: var(--exc-sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--exc-purple);
+    cursor: pointer;
+}
+.exc-pf__more::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.2s var(--pf-ease);
+}
+.exc-pf__more[aria-expanded="true"]::after {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+}
+.exc-pf__list.is-searching ~ .exc-pf__more {
+    display: none;
+}
+
+
+/* ---------------------------------------------------
+   4. PRICE
+   --------------------------------------------------- */
+.exc-pf__range {
+    --exc-pf-lo: 0%;
+    --exc-pf-hi: 100%;
+    position: relative;
+    height: 28px;
+    margin: 4px 9px 14px;
+}
+.exc-pf__track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+    background: #e3e0e6;
+    border-radius: 999px;
+}
+.exc-pf__fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--exc-pf-lo);
+    right: calc(100% - var(--exc-pf-hi));
+    background: var(--exc-purple);
+    border-radius: 999px;
+}
+
+/* Two native sliders laid over one track; only the thumbs take clicks */
+.exc-pf__thumb {
+    position: absolute;
+    left: -9px;
+    top: 0;
+    width: calc(100% + 18px);
+    height: 28px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: none;
+    outline: none;
+}
+.exc-pf__thumb::-webkit-slider-runnable-track {
+    height: 28px;
+    background: none;
+    border: 0;
+}
+.exc-pf__thumb::-moz-range-track {
+    height: 28px;
+    background: none;
+    border: 0;
+}
+.exc-pf__thumb::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 4px;
+    background: var(--exc-white);
+    border: 2px solid var(--exc-purple);
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(31, 31, 31, 0.18);
+    cursor: grab;
+    pointer-events: auto;
+    transition: transform 0.15s var(--pf-ease), box-shadow 0.15s ease;
+}
+.exc-pf__thumb::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--exc-white);
+    border: 2px solid var(--exc-purple);
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(31, 31, 31, 0.18);
+    cursor: grab;
+    pointer-events: auto;
+}
+.exc-pf__thumb:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(1.12);
+}
+.exc-pf__thumb:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px var(--exc-purple-soft), 0 1px 4px rgba(31, 31, 31, 0.18);
+}
+.exc-pf__thumb:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px var(--exc-purple-soft);
+}
+
+.exc-pf__prices {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.exc-pf__money {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+}
+.exc-pf__sym {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--exc-muted);
+    pointer-events: none;
+}
+.exc-pf .exc-pf__num {
+    display: block;
+    width: 100%;
+    height: 40px;
+    margin: 0;
+    padding: 0 10px 0 26px;
+    background: var(--exc-white);
+    border: 1px solid var(--pf-field);
+    border-radius: var(--pf-radius);
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--exc-ink);
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.exc-pf .exc-pf__num::-webkit-outer-spin-button,
+.exc-pf .exc-pf__num::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.exc-pf .exc-pf__num:focus {
+    border-color: var(--exc-purple);
+    box-shadow: 0 0 0 3px var(--exc-purple-soft);
+}
+.exc-pf__dash {
+    flex: 0 0 10px;
+    height: 1.5px;
+    background: var(--pf-field);
+}
+
+
+/* ---------------------------------------------------
+   5. FOOTER BUTTONS
+   "Apply filters" only shows if the page script did not
+   load; "Show N products" only in the drawer.
+   --------------------------------------------------- */
+.exc-pf__foot {
+    padding: 16px 20px 20px;
+}
+.exc-pf__apply,
+.exc-pf__done {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 46px;
+    margin: 0;
+    padding: 0 20px;
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border: 1px solid var(--exc-purple);
+    border-radius: var(--pf-radius);
+    font-family: var(--exc-sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.exc-pf__apply:hover,
+.exc-pf__done:hover {
+    background: var(--exc-purple-dark);
+    border-color: var(--exc-purple-dark);
+}
+.exc-pf--js .exc-pf__apply,
+.exc-pf__done {
+    display: none;
+}
+.exc-pf--js .exc-pf__foot {
+    display: none;
+}
+
+/* While the page reloads after a change */
+.exc-pf.is-loading .exc-pf__groups {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.exc-pf.is-loading .exc-pf__title::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--exc-purple-line);
+    border-top-color: var(--exc-purple);
+    border-radius: 50%;
+    animation: exc-pf-spin 0.7s linear infinite;
+}
+@keyframes exc-pf-spin {
+    to { transform: rotate(360deg); }
+}
+
+
+/* ---------------------------------------------------
+   6. BAR ABOVE THE PRODUCTS
+   --------------------------------------------------- */
+.exc-pf-bar {
+    font-family: var(--exc-sans);
+    margin: 0 0 20px;
+    scroll-margin-top: 110px;
+}
+.exc-pf-bar__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 40px;
+}
+.exc-pf-bar__count {
+    margin: 0;
+    font-size: 13px;
+    color: var(--exc-muted);
+}
+.exc-pf-bar__count strong {
+    font-weight: 700;
+    color: var(--exc-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.exc-pf-bar__open {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    margin: 0;
+    padding: 0 16px;
+    background: var(--exc-white);
+    color: var(--exc-ink);
+    border: 1px solid var(--pf-field);
+    border-radius: 999px;
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.exc-pf-bar__open:hover {
+    border-color: var(--exc-purple);
+    color: var(--exc-purple);
+}
+/* Three-line "sliders" icon */
+.exc-pf-bar__icon {
+    position: relative;
+    width: 16px;
+    height: 12px;
+    background:
+        linear-gradient(currentColor, currentColor) 0 0 / 16px 1.5px no-repeat,
+        linear-gradient(currentColor, currentColor) 2px 50% / 12px 1.5px no-repeat,
+        linear-gradient(currentColor, currentColor) 5px 100% / 6px 1.5px no-repeat;
+}
+
+.exc-pf-bar__chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+.exc-pf-bar__chips li {
+    margin: 0;
+    padding: 0;
+}
+.exc-pf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 6px 0 14px;
+    background: var(--exc-purple-soft);
+    color: var(--exc-purple-dark);
+    border: 1px solid var(--exc-purple-line);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.exc-pf-chip:hover {
+    background: rgba(143, 41, 151, 0.14);
+    border-color: var(--exc-purple);
+    color: var(--exc-purple-dark);
+}
+.exc-pf-chip__x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--exc-white);
+    border-radius: 50%;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--exc-purple);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.exc-pf-chip:hover .exc-pf-chip__x {
+    background: var(--exc-purple);
+    color: var(--exc-white);
+}
+.exc-pf-bar__clear {
+    margin-left: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--exc-muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.exc-pf-bar__clear:hover {
+    color: var(--exc-purple);
+}
+
+.exc-pf-bar a:focus-visible,
+.exc-pf-bar button:focus-visible,
+.exc-pf a:focus-visible,
+.exc-pf button:focus-visible,
+.exc-pf__summary:focus-visible {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------
+   7. DRAWER (tablet and phone)
+   --------------------------------------------------- */
+@media (max-width: 1024px) {
+    .exc-pf-bar__open {
+        display: inline-flex;
+    }
+
+    .exc-pf {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100001;
+        display: flex;
+        flex-direction: column;
+        width: min(90vw, 400px);
+        max-height: none;
+        border: 0;
+        border-radius: 0 var(--exc-radius-lg, 12px) var(--exc-radius-lg, 12px) 0;
+        box-shadow: 0 0 40px rgba(31, 31, 31, 0.22);
+        transform: translateX(-105%);
+        visibility: hidden;
+        transition: transform 0.3s var(--pf-ease), visibility 0s linear 0.3s;
+    }
+    body.exc-pf-open .exc-pf {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.3s var(--pf-ease), visibility 0s linear 0s;
+    }
+    .exc-pf__form {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+    .exc-pf__head {
+        flex: 0 0 auto;
+        border-radius: 0 var(--exc-radius-lg, 12px) 0 0;
+    }
+    .exc-pf__groups {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+    .exc-pf__close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        margin: -6px -8px -6px 4px;
+        padding: 0;
+        background: none;
+        border: 0;
+        border-radius: 50%;
+        font-size: 26px;
+        line-height: 1;
+        color: var(--exc-ink);
+        cursor: pointer;
+    }
+    .exc-pf__head .exc-pf__clear + .exc-pf__close {
+        margin-left: 4px;
+    }
+    .exc-pf__title + .exc-pf__close {
+        margin-left: auto;
+    }
+    .exc-pf__close:hover {
+        background: var(--exc-off-white);
+    }
+
+    .exc-pf--js .exc-pf__foot {
+        display: block;
+        flex: 0 0 auto;
+        padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+        background: var(--exc-white);
+        border-top: 1px solid var(--pf-line);
+    }
+    .exc-pf--js .exc-pf__done {
+        display: flex;
+    }
+
+    .exc-pf-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        background: rgba(31, 31, 31, 0.45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+    }
+    body.exc-pf-open .exc-pf-backdrop {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.3s ease, visibility 0s linear 0s;
+    }
+    body.exc-pf-open {
+        overflow: hidden;
+    }
+
+    /* Bigger touch targets */
+    .exc-pf__check,
+    .exc-pf__switch {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+}
+
+/* ---------------------------------------------------
+   8. THEME BUTTON RESETS
+   The theme paints every button pink on hover and focus;
+   keep ours in brand colours.
+   --------------------------------------------------- */
+.exc-pf .exc-pf__close:hover,
+.exc-pf .exc-pf__close:focus {
+    background: var(--exc-off-white);
+    color: var(--exc-ink);
+    border: 0;
+}
+.exc-pf .exc-pf__more:hover,
+.exc-pf .exc-pf__more:focus {
+    background: none;
+    color: var(--exc-purple-dark);
+    border: 0;
+}
+.exc-pf-bar .exc-pf-bar__open:hover,
+.exc-pf-bar .exc-pf-bar__open:focus {
+    background: var(--exc-white);
+    color: var(--exc-purple);
+    border-color: var(--exc-purple);
+}
+.exc-pf .exc-pf__apply:hover,
+.exc-pf .exc-pf__apply:focus,
+.exc-pf .exc-pf__done:hover,
+.exc-pf .exc-pf__done:focus {
+    background: var(--exc-purple-dark);
+    border-color: var(--exc-purple-dark);
+    color: var(--exc-white);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    .exc-pf,
+    .exc-pf-backdrop,
+    .exc-pf__switch-ui,
+    .exc-pf__switch-ui::after,
+    .exc-pf__summary::after {
+        transition: none !important;
+    }
+}
