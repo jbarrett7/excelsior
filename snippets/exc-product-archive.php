@@ -26,6 +26,10 @@
  *     optional HTML for the bottom of the page
  *   [/exc_search]
  *
+ * [exc_archive] also renders the search page if Elementor uses the
+ * archive template for a search (its "All Product Archives" condition
+ * includes product search results), so either template works.
+ *
  * The search results page, for its own Elementor template (condition:
  * Search Results). Same filters, bar, cards and pagination, with a
  * search box in the hero and a proper "no results" page. Results are
@@ -1155,7 +1159,13 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
     }
 
     function exc_archive_shortcode( $atts = array(), $content = '' ) {
-        if ( ! exc_pf_is_listing() || exc_pf_is_search() ) {
+        // Elementor's "All Product Archives" condition also covers product
+        // search results, so the archive template can end up rendering a
+        // search. Show the search page rather than nothing.
+        if ( exc_pf_is_search() ) {
+            return exc_search_shortcode( $atts, $content );
+        }
+        if ( ! exc_pf_is_listing() ) {
             $note = exc_archive_placeholder( 'Product archive: hero, filters, products and pagination' );
             if ( '' === $note && function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_tag() ) ) {
                 $note = exc_archive_admin_note( 'EXC Product Archive' );
