@@ -3,7 +3,7 @@
  * ------------------------------------------------------------
  * WPCode PHP Snippet. Run Everywhere, Auto Insert, priority 10.
  * No opening PHP tag. Pure ASCII.
- * Styled by the "EXC Product Filters CSS" snippet.
+ * Styled by the "EXC Product Archive CSS" snippet.
  *
  * ONE SHORTCODE BUILDS THE WHOLE ARCHIVE PAGE, ALL SERVER RENDERED:
  *
