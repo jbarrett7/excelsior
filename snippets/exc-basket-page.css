@@ -1,5 +1,5 @@
 /* ===================================================
-   EXC Basket Page (v2, 30 Sept 2026)
+   EXC Basket Page (v3, 1 Oct 2026: rounded 8px corners restored)
    WPCode: CSS Snippet. Auto Insert, Site Wide Header, priority 10.
    REPLACES the Custom CSS in the Basket page's Elementor page settings.
    Delete that CSS when this goes live, or both will fight.
@@ -7,14 +7,14 @@
    Scoped to body.woocommerce-cart. Uses the Design Tokens snippet.
    Classic [woocommerce_cart] markup, not the Cart block.
 
-   Sharper than v1: 4px corners, darker hairlines that always run
-   edge to edge, no soft shadows, one padding scale throughout.
+   Rounded 8px corners as before, with darker hairlines that always
+   run edge to edge, no soft shadows, one padding scale throughout.
    =================================================== */
 
 body.woocommerce-cart {
     --exc-cart-line: #dfdfdf;
-    --exc-cart-radius: 4px;
-    --exc-cart-radius-inner: 3px;
+    --exc-cart-radius: var(--exc-radius-md, 8px);
+    --exc-cart-radius-inner: calc(var(--exc-radius-md, 8px) - 1px);
 }
 
 

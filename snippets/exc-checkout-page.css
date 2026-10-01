@@ -1,20 +1,20 @@
 /* ===================================================
-   EXC Checkout Page (v2, 1 Oct 2026)
+   EXC Checkout Page (v3, 1 Oct 2026: rounded corners, opt-in hidden)
    WPCode: CSS Snippet. Auto Insert, Site Wide Header, priority 10.
    REPLACES the Custom CSS in the Checkout page's Elementor page settings.
    Delete that CSS when this goes live, or both will fight.
 
    Scoped to the classic checkout form (form.checkout), so the
    order-received and pay-for-order pages are left alone.
-   Matches the EXC Basket Page snippet: 4px corners, full-width
-   hairlines, no soft shadows. The Apple Pay, Google Pay, Onelink,
+   Matches the EXC Basket Page snippet: rounded 8px corners,
+   full-width hairlines, no soft shadows. The Apple Pay, Google Pay, Onelink,
    PayPal and card fields are drawn by their plugins and untouched.
    =================================================== */
 
 body.woocommerce-checkout {
     --exc-co-line: #dfdfdf;
     --exc-co-field: var(--exc-muted-light);
-    --exc-co-radius: 4px;
+    --exc-co-radius: var(--exc-radius-md, 8px);
     --exc-co-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
@@ -555,6 +555,19 @@ body.woocommerce-checkout form.checkout .form-row label:has(> input[type="checkb
 body.woocommerce-checkout form.checkout h3#ship-to-different-address label.woocommerce-form__label-for-checkbox {
     align-items: center;
     font-weight: 600;
+}
+
+
+/* Email marketing opt-in ("I would like to receive exclusive
+   emails..."), added by a mailing plugin, hidden on request.
+   WooCommerce itself puts no checkboxes in the billing card, so any
+   checkbox row there is the opt-in. Turning it off in the plugin's
+   own settings is the cleaner fix; this hides it until then.
+   An unticked hidden box records no consent. Never set the plugin
+   to pre-tick it while this is in place. */
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields__field-wrapper > .form-row:has(input[type="checkbox"]),
+body.woocommerce-checkout form.checkout .woocommerce-billing-fields > :not(h3):not(.woocommerce-billing-fields__field-wrapper):has(input[type="checkbox"]) {
+    display: none;
 }
 
 
