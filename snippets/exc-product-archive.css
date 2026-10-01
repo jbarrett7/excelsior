@@ -1315,18 +1315,160 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
 }
 
 /* ---- About (HTML between the shortcode tags) ---- */
+/* A plain slot: whatever goes between the tags brings its own styling. */
 .exc-archive__about {
-    margin: 64px 0 0;
-    padding: 40px 0 0;
-    border-top: 1px solid var(--pf-line);
-    font-size: 15px;
+    margin: 56px 0 0;
+}
+
+/* ---- "About Excelsior Wholesale" outro (pasted between the tags) ----
+   Moved here from the old About HTML widget's inline <style>; same
+   look, now on the design tokens, and a CSS chevron instead of an
+   inline SVG. */
+.exc-shop-outro {
+    padding: 0;
+    font-family: var(--exc-sans);
+    color: var(--exc-ink);
+}
+.exc-shop-outro__details {
+    border-top: 1px solid var(--exc-purple-border);
+    border-bottom: 1px solid var(--exc-purple-border);
+}
+.exc-shop-outro__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 4px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+.exc-shop-outro__summary::-webkit-details-marker {
+    display: none;
+}
+.exc-shop-outro__summary:hover {
+    color: var(--exc-purple);
+}
+.exc-shop-outro__summary:focus-visible {
+    outline: 2px solid var(--exc-purple);
+    outline-offset: 2px;
+}
+.exc-shop-outro__summary-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--exc-muted);
+    line-height: 1;
+}
+.exc-shop-outro__summary-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--exc-purple);
+    transition: transform 0.25s ease;
+}
+.exc-shop-outro__summary-icon::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-right: 1.8px solid currentColor;
+    border-bottom: 1.8px solid currentColor;
+    transform: rotate(45deg);
+}
+.exc-shop-outro__details[open] .exc-shop-outro__summary-icon {
+    transform: rotate(180deg);
+}
+.exc-shop-outro__details[open] .exc-shop-outro__summary-label {
+    color: var(--exc-purple);
+}
+.exc-shop-outro__content {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 40px;
+    align-items: start;
+    padding: 8px 4px 28px;
+}
+.exc-shop-outro__eyebrow {
+    margin: 0 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--exc-purple);
+}
+.exc-shop-outro__body {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 400;
     line-height: 1.7;
     color: var(--exc-muted);
 }
-.exc-archive__about h2,
-.exc-archive__about h3 {
-    color: var(--exc-ink);
-    letter-spacing: -0.015em;
+.exc-shop-outro__body:last-child {
+    margin-bottom: 0;
+}
+.exc-shop-outro__body strong {
+    font-weight: 600;
+    color: var(--exc-purple);
+}
+.exc-shop-outro__usps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    margin: 0;
+    padding: 20px 24px;
+    list-style: none;
+    background: rgba(143, 41, 151, 0.04);
+    border: 1px solid var(--exc-purple-border);
+    border-top: 2px solid var(--exc-purple);
+    border-radius: var(--exc-radius-md, 8px);
+}
+.exc-shop-outro__usps li {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+}
+.exc-shop-outro__usp-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.3;
+    color: var(--exc-purple);
+}
+.exc-shop-outro__usp-detail {
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--exc-muted);
+}
+.exc-shop-outro__details[open] .exc-shop-outro__content {
+    animation: exc-outro-fade 0.3s ease-out;
+}
+@keyframes exc-outro-fade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 1024px) {
+    .exc-shop-outro__content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+@media (max-width: 600px) {
+    .exc-shop-outro__summary {
+        padding: 16px 4px;
+    }
+    .exc-shop-outro__usps {
+        gap: 12px 16px;
+        padding: 16px 18px;
+    }
 }
 
 /* Editor placeholder */
@@ -1370,6 +1512,9 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
 
 
 @media (prefers-reduced-motion: reduce) {
+    .exc-shop-outro__details[open] .exc-shop-outro__content {
+        animation: none;
+    }
     .exc-pf,
     .exc-pf-backdrop,
     .exc-pf__switch-ui,
