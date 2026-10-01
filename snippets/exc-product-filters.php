@@ -603,9 +603,9 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         // Focus once the drawer is visible, or the browser ignores it.
         var first = root.querySelector(".exc-pf__close");
         if (first) {
-            window.requestAnimationFrame(function () {
-                window.requestAnimationFrame(function () { first.focus(); });
-            });
+            setTimeout(function () {
+                if (isOpen()) { first.focus(); }
+            }, 80);
         }
     }
     function closeDrawer() {
