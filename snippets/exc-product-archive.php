@@ -70,32 +70,39 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
 
     /* ---------- Setup ---------- */
 
+    // Only a "yes" is remembered: WordPress can run queries before
+    // WooCommerce has loaded its template functions, and an early "no"
+    // must not switch the archive off for the rest of the page load.
     function exc_pf_ready() {
-        static $ok = null;
-        if ( null === $ok ) {
-            $ok = true;
-            $needs = array(
-                'is_shop', 'is_product_category', 'is_product_tag', 'wc_get_product_visibility_term_ids',
-                'wc_get_page_permalink', 'get_woocommerce_currency_symbol', 'get_term_link', 'get_term_by',
-                'get_terms', 'get_term_children', 'wp_get_object_terms', 'get_queried_object', 'is_wp_error',
-                'add_query_arg', 'remove_query_arg', 'sanitize_title', 'sanitize_key', 'wp_unslash',
-                'number_format_i18n', 'esc_url', 'esc_html', 'esc_attr', 'get_option', 'get_post_meta',
-                'wp_register_script', 'wp_enqueue_script', 'wp_add_inline_script', 'wp_dequeue_script',
-                'wc_setup_loop', 'woocommerce_product_loop_start', 'woocommerce_product_loop_end',
-                'wc_get_template_part', 'woocommerce_catalog_ordering', 'have_posts', 'the_post',
-                'rewind_posts', 'wp_reset_postdata', 'remove_action', 'do_action', 'wpautop',
-                'wp_kses_post', 'do_shortcode', 'wc_get_page_id', 'get_post', 'home_url',
-                'is_search', 'is_admin', 'get_search_query', 'get_query_var', 'urlencode_deep',
-                'wc_get_default_products_per_row', 'wc_get_default_product_rows_per_page', 'apply_filters',
-            );
-            foreach ( $needs as $fn ) {
-                if ( ! function_exists( $fn ) ) {
-                    $ok = false;
-                    break;
-                }
-            }
+        static $ok = false;
+        if ( ! $ok ) {
+            $ok = ( '' === exc_pf_missing() );
         }
         return $ok;
+    }
+
+    // Name of the first required function that is not loaded, or ''.
+    function exc_pf_missing() {
+        $needs = array(
+            'is_shop', 'is_product_category', 'is_product_tag', 'wc_get_product_visibility_term_ids',
+            'wc_get_page_permalink', 'get_woocommerce_currency_symbol', 'get_term_link', 'get_term_by',
+            'get_terms', 'get_term_children', 'wp_get_object_terms', 'get_queried_object', 'is_wp_error',
+            'add_query_arg', 'remove_query_arg', 'sanitize_title', 'sanitize_key', 'wp_unslash',
+            'number_format_i18n', 'esc_url', 'esc_html', 'esc_attr', 'get_option', 'get_post_meta',
+            'wp_register_script', 'wp_enqueue_script', 'wp_add_inline_script', 'wp_dequeue_script',
+            'wc_setup_loop', 'woocommerce_product_loop_start', 'woocommerce_product_loop_end',
+            'wc_get_template_part', 'woocommerce_catalog_ordering', 'have_posts', 'the_post',
+            'rewind_posts', 'wp_reset_postdata', 'remove_action', 'do_action', 'wpautop',
+            'wp_kses_post', 'do_shortcode', 'wc_get_page_id', 'get_post', 'home_url',
+            'is_search', 'is_admin', 'get_search_query', 'get_query_var', 'urlencode_deep',
+            'wc_get_default_products_per_row', 'wc_get_default_product_rows_per_page', 'apply_filters',
+        );
+        foreach ( $needs as $fn ) {
+            if ( ! function_exists( $fn ) ) {
+                return $fn;
+            }
+        }
+        return '';
     }
 
     function exc_pf_is_search() {
@@ -246,7 +253,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
     /* ---------- Filter the products on the page ---------- */
 
     function exc_pf_apply_main_query( $q ) {
-        if ( ! exc_pf_ready() || ! ( $q instanceof WP_Query ) || ! $q->is_main_query() ) {
+        if ( ! ( $q instanceof WP_Query ) || ! $q->is_main_query() || ! exc_pf_ready() ) {
             return;
         }
         $req = exc_pf_request();
@@ -290,7 +297,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
     // so filters, visibility, page size and sorting are applied here.
     // Runs after Search SKU (priority 10) has set its matches.
     function exc_pf_apply_search_query( $q ) {
-        if ( ! exc_pf_ready() || is_admin() || ! ( $q instanceof WP_Query ) || ! $q->is_main_query() || ! $q->is_search() ) {
+        if ( ! ( $q instanceof WP_Query ) || ! $q->is_main_query() || ! $q->is_search() || ! exc_pf_ready() || is_admin() ) {
             return;
         }
         if ( 'product_query' === $q->get( 'wc_query' ) ) {
@@ -1135,9 +1142,25 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
             : '';
     }
 
+    // Why a page that should render did not; shown to administrators only.
+    function exc_archive_admin_note( $what ) {
+        if ( ! function_exists( 'current_user_can' ) || ! current_user_can( 'manage_options' ) ) {
+            return '';
+        }
+        $missing = exc_pf_missing();
+        $reason  = ( '' !== $missing )
+            ? 'the function ' . $missing . '() is not loaded on this page'
+            : 'this page is not recognised as the right type of page';
+        return '<div class="exc-archive-placeholder">' . esc_html( $what . ' could not render: ' . $reason . '. (Only administrators see this note.)' ) . '</div>';
+    }
+
     function exc_archive_shortcode( $atts = array(), $content = '' ) {
         if ( ! exc_pf_is_listing() || exc_pf_is_search() ) {
-            return exc_archive_placeholder( 'Product archive: hero, filters, products and pagination' );
+            $note = exc_archive_placeholder( 'Product archive: hero, filters, products and pagination' );
+            if ( '' === $note && function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_tag() ) ) {
+                $note = exc_archive_admin_note( 'EXC Product Archive' );
+            }
+            return $note;
         }
         wc_setup_loop();
         $d = exc_pf_data();
@@ -1202,7 +1225,11 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
 
     function exc_search_shortcode( $atts = array(), $content = '' ) {
         if ( ! exc_pf_is_search() ) {
-            return exc_archive_placeholder( 'Search results: search box, filters, products and pagination' );
+            $note = exc_archive_placeholder( 'Search results: search box, filters, products and pagination' );
+            if ( '' === $note && is_search() ) {
+                $note = exc_archive_admin_note( 'EXC Search' );
+            }
+            return $note;
         }
         global $wp_query;
         $per_page = (int) $wp_query->get( 'posts_per_page' );
