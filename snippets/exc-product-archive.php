@@ -38,6 +38,18 @@
  * WooCommerce's "hide from search" visibility, the shop's page size and
  * the sort menu, which WooCommerce does not apply to this site's search.
  *
+ *   [exc_latest limit="16"]
+ *     optional HTML for the bottom of the page
+ *   [/exc_latest]
+ *
+ * The Latest Products page (an ordinary WordPress page, slug
+ * latest-products; see exc_pf_latest_pages). Takes the newest "limit"
+ * products (default 16) and gives them the same filters, bar, sort menu
+ * and cards, under a "Latest Products" hero. No pagination: every one of
+ * them is on the page. Replaces the New Arrivals Hero Data snippet's
+ * hero and its 16-newest query rule, which this snippet overrides for
+ * its own queries while both are active.
+ *
  * Filters reload the page with the choices in the address (no AJAX),
  * so back, pagination, sorting and shared links all just work.
  *
@@ -101,6 +113,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
             'wp_kses_post', 'do_shortcode', 'wc_get_page_id', 'get_post', 'home_url',
             'is_search', 'is_admin', 'get_search_query', 'get_query_var', 'urlencode_deep',
             'wc_get_default_products_per_row', 'wc_get_default_product_rows_per_page', 'apply_filters',
+            'is_page', 'get_permalink', 'get_queried_object_id',
         );
         foreach ( $needs as $fn ) {
             if ( ! function_exists( $fn ) ) {
@@ -114,8 +127,26 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         return exc_pf_ready() && is_search() && ! is_admin();
     }
 
+    // Page slugs that show [exc_latest].
+    function exc_pf_latest_pages() {
+        return array( 'latest-products' );
+    }
+
+    function exc_pf_is_latest() {
+        return exc_pf_ready() && ! is_admin() && is_page( exc_pf_latest_pages() );
+    }
+
+    // How many of the newest products the latest page shows.
+    function exc_pf_latest_limit( $set = null ) {
+        static $n = 16;
+        if ( null !== $set ) {
+            $n = max( 1, min( 200, (int) $set ) );
+        }
+        return $n;
+    }
+
     function exc_pf_is_listing() {
-        return exc_pf_ready() && ( is_shop() || is_product_category() || is_product_tag() || exc_pf_is_search() );
+        return exc_pf_ready() && ( is_shop() || is_product_category() || is_product_tag() || exc_pf_is_search() || exc_pf_is_latest() );
     }
 
     function exc_pf_keys() {
@@ -173,7 +204,14 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         if ( null !== $ctx ) {
             return $ctx;
         }
-        $ctx = array( 'tax' => '', 'term' => null, 'url' => '', 'search' => null, 'within' => null );
+        $ctx = array( 'tax' => '', 'term' => null, 'url' => '', 'search' => null, 'within' => null, 'latest' => false );
+        if ( exc_pf_is_latest() ) {
+            // The newest products are this page's products.
+            $ctx['latest'] = true;
+            $ctx['within'] = exc_latest_ids();
+            $ctx['url']    = (string) get_permalink( get_queried_object_id() );
+            return $ctx;
+        }
         if ( is_search() ) {
             // Search SKU narrows the main query to its title and SKU
             // matches with post__in; those are this page's products.
@@ -255,6 +293,50 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         return null;
     }
 
+    function exc_pf_orderby() {
+        return isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : '';
+    }
+
+    // The sort menu's choices as orderby, order and meta_key; null if unknown.
+    function exc_pf_sort( $orderby ) {
+        $sorts = array(
+            'date'       => array( 'date', 'DESC', '' ),
+            'price'      => array( 'meta_value_num', 'ASC', '_price' ),
+            'price-desc' => array( 'meta_value_num', 'DESC', '_price' ),
+            'popularity' => array( 'meta_value_num', 'DESC', 'total_sales' ),
+            'rating'     => array( 'meta_value_num', 'DESC', '_wc_average_rating' ),
+        );
+        return isset( $sorts[ $orderby ] ) ? $sorts[ $orderby ] : null;
+    }
+
+    // A product query that keeps its own page size and order. Other
+    // snippets can rewrite every product query on a page in
+    // pre_get_posts (New Arrivals Hero Data forces "16 newest" on the
+    // latest products page); exc_pf_keep_args puts these values back.
+    function exc_pf_query( $args ) {
+        $keep = array();
+        foreach ( array( 'posts_per_page', 'orderby', 'order', 'meta_key' ) as $k ) {
+            if ( isset( $args[ $k ] ) ) {
+                $keep[ $k ] = $args[ $k ];
+            }
+        }
+        $args['exc_pf_keep'] = $keep;
+        return new WP_Query( $args );
+    }
+
+    function exc_pf_keep_args( $q ) {
+        if ( ! ( $q instanceof WP_Query ) ) {
+            return;
+        }
+        $keep = $q->get( 'exc_pf_keep' );
+        if ( ! is_array( $keep ) ) {
+            return;
+        }
+        foreach ( $keep as $k => $v ) {
+            $q->set( $k, $v );
+        }
+    }
+
     /* ---------- Filter the products on the page ---------- */
 
     function exc_pf_apply_main_query( $q ) {
@@ -332,21 +414,97 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
 
         $q->set( 'posts_per_page', (int) apply_filters( 'loop_shop_per_page', wc_get_default_products_per_row() * wc_get_default_product_rows_per_page() ) );
 
-        $orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : '';
-        $sorts   = array(
-            'date'       => array( 'date', 'DESC', '' ),
-            'price'      => array( 'meta_value_num', 'ASC', '_price' ),
-            'price-desc' => array( 'meta_value_num', 'DESC', '_price' ),
-            'popularity' => array( 'meta_value_num', 'DESC', 'total_sales' ),
-            'rating'     => array( 'meta_value_num', 'DESC', '_wc_average_rating' ),
-        );
-        if ( isset( $sorts[ $orderby ] ) ) {
-            $q->set( 'orderby', $sorts[ $orderby ][0] );
-            $q->set( 'order', $sorts[ $orderby ][1] );
-            if ( '' !== $sorts[ $orderby ][2] ) {
-                $q->set( 'meta_key', $sorts[ $orderby ][2] );
+        $sort = exc_pf_sort( exc_pf_orderby() );
+        if ( $sort ) {
+            $q->set( 'orderby', $sort[0] );
+            $q->set( 'order', $sort[1] );
+            if ( '' !== $sort[2] ) {
+                $q->set( 'meta_key', $sort[2] );
             }
         }
+    }
+
+    /* ---------- Latest products query ---------- */
+
+    // The newest products in the catalogue, newest first.
+    function exc_latest_ids() {
+        $tax = array();
+        $vis = exc_pf_visibility_clause( false );
+        if ( $vis ) {
+            $tax[] = $vis;
+        }
+        $q = exc_pf_query( array(
+            'post_type'              => 'product',
+            'post_status'            => 'publish',
+            'fields'                 => 'ids',
+            'posts_per_page'         => exc_pf_latest_limit(),
+            'no_found_rows'          => true,
+            'ignore_sticky_posts'    => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'tax_query'              => $tax,
+        ) );
+        return array_values( (array) $q->posts );
+    }
+
+    // What the latest page lists: those products, filtered and sorted.
+    function exc_latest_query() {
+        $ctx = exc_pf_context();
+        $req = exc_pf_request();
+        $tax = array( 'relation' => 'AND' );
+        $vis = exc_pf_visibility_clause( false );
+        if ( $vis ) {
+            $tax[] = $vis;
+        }
+        foreach ( array( 'cats', 'instock', 'collection' ) as $k ) {
+            $clause = exc_pf_clause( $k, $req );
+            if ( $clause ) {
+                $tax[] = $clause;
+            }
+        }
+        $sort = exc_pf_sort( exc_pf_orderby() );
+        if ( ! $sort ) {
+            $sort = exc_pf_sort( 'date' );
+        }
+        $args = array(
+            'post_type'           => 'product',
+            'post_status'         => 'publish',
+            'post__in'            => $ctx['within'] ? $ctx['within'] : array( 0 ),
+            'posts_per_page'      => -1,
+            'ignore_sticky_posts' => true,
+            'tax_query'           => $tax,
+            'orderby'             => $sort[0],
+            'order'               => $sort[1],
+        );
+        if ( '' !== $sort[2] ) {
+            $args['meta_key'] = $sort[2];
+        }
+        $price = exc_pf_price_clause( $req );
+        if ( $price ) {
+            $args['meta_query'] = array( $price );
+        }
+        return exc_pf_query( $args );
+    }
+
+    // The query the page lists when it is not the main one (latest page).
+    function exc_pf_results( $set = null ) {
+        static $q = null;
+        if ( null !== $set ) {
+            $q = ( $set instanceof WP_Query ) ? $set : null;
+        }
+        return $q;
+    }
+
+    // Products listed after filtering.
+    function exc_pf_total() {
+        $q = exc_pf_results();
+        if ( $q ) {
+            return count( (array) $q->posts );
+        }
+        global $wp_query;
+        return isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0;
     }
 
     /* ---------- Counts and price range for the panel ---------- */
@@ -388,12 +546,10 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         if ( $meta ) {
             $args['meta_query'] = array( $meta );
         }
-        if ( null !== $ctx['search'] ) {
-            if ( null !== $ctx['within'] ) {
-                $within = ( null === $within ) ? $ctx['within'] : array_values( array_intersect( $within, $ctx['within'] ) );
-            } else {
-                $args['s'] = $ctx['search'];
-            }
+        if ( null !== $ctx['within'] ) {
+            $within = ( null === $within ) ? $ctx['within'] : array_values( array_intersect( $within, $ctx['within'] ) );
+        } elseif ( null !== $ctx['search'] ) {
+            $args['s'] = $ctx['search'];
         }
         if ( null !== $within ) {
             $args['post__in'] = $within ? $within : array( 0 );
@@ -404,7 +560,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
             $args['orderby']        = 'meta_value_num';
             $args['order']          = $orderby_price;
         }
-        $q = new WP_Query( $args );
+        $q = exc_pf_query( $args );
         return $q->posts;
     }
 
@@ -973,8 +1129,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
             $active ? '<a class="exc-pf__clear" href="' . esc_url( exc_pf_clear_url() ) . '" rel="nofollow">Clear all</a>' : ''
         );
 
-        global $wp_query;
-        $total = isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0;
+        $total = exc_pf_total();
         $foot  = sprintf(
             '<div class="exc-pf__foot"><button type="submit" class="exc-pf__apply">Apply filters</button><button type="button" class="exc-pf__done" data-exc-pf-close>Show %1$s %2$s</button></div>',
             esc_html( number_format_i18n( $total ) ),
@@ -997,8 +1152,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
     /* ---------- [exc_filter_bar] ---------- */
 
     function exc_pf_bar_html( $right = '' ) {
-        global $wp_query;
-        $total = isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0;
+        $total = exc_pf_total();
         $chips = exc_pf_chips();
         $has_panel = ! empty( exc_pf_data()['base'] );
 
@@ -1091,16 +1245,26 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
             . '</header>';
     }
 
+    // The page's products: the main query, or exc_pf_results() if set.
     function exc_archive_loop() {
-        rewind_posts();
-        if ( have_posts() ) {
+        $q = exc_pf_results();
+        if ( $q ) {
+            $q->rewind_posts();
+        } else {
+            rewind_posts();
+        }
+        if ( $q ? $q->have_posts() : have_posts() ) {
             // The count and sort menu live in the bar above instead.
             remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
             remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
             do_action( 'woocommerce_before_shop_loop' );
             woocommerce_product_loop_start();
-            while ( have_posts() ) {
-                the_post();
+            while ( $q ? $q->have_posts() : have_posts() ) {
+                if ( $q ) {
+                    $q->the_post();
+                } else {
+                    the_post();
+                }
                 do_action( 'woocommerce_shop_loop' );
                 wc_get_template_part( 'content', 'product' );
             }
@@ -1254,6 +1418,44 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
         return exc_archive_page( exc_search_hero_html( count( $d['base'] ) ), $content, ' exc-search' );
     }
 
+    /* ---------- [exc_latest]: the latest products page ---------- */
+
+    function exc_latest_hero_html( $count ) {
+        return '<header class="exc-archive__hero exc-latest__hero">'
+            . '<nav class="exc-archive__crumbs" aria-label="Breadcrumb"><ol><li><a href="' . esc_url( home_url( '/' ) ) . '">Home</a></li><li aria-current="page">Latest Products</li></ol></nav>'
+            . '<h1 class="exc-archive__title">Latest Products <span class="exc-latest__badge" aria-hidden="true">New</span></h1>'
+            . ( $count > 0 ? '<p class="exc-archive__meta">Our ' . esc_html( number_format_i18n( $count ) ) . ' newest ' . ( 1 === $count ? 'product' : 'products' ) . '</p>' : '' )
+            . '</header>';
+    }
+
+    function exc_latest_shortcode( $atts = array(), $content = '' ) {
+        if ( ! exc_pf_is_latest() ) {
+            $note = exc_archive_placeholder( 'Latest products: hero, filters and products' );
+            if ( '' === $note && function_exists( 'is_page' ) && is_page( exc_pf_latest_pages() ) ) {
+                $note = exc_archive_admin_note( 'EXC Latest Products' );
+            }
+            return $note;
+        }
+        // Set before anything reads the page's products.
+        exc_pf_latest_limit( ( is_array( $atts ) && isset( $atts['limit'] ) ) ? $atts['limit'] : 16 );
+
+        $q = exc_latest_query();
+        $n = count( (array) $q->posts );
+        exc_pf_results( $q );
+        wc_setup_loop( array(
+            'is_paginated' => true,
+            'total'        => $n,
+            'total_pages'  => 1,
+            'per_page'     => max( 1, $n ),
+            'current_page' => 1,
+        ) );
+
+        $d    = exc_pf_data();
+        $html = exc_archive_page( exc_latest_hero_html( count( $d['base'] ) ), $content, ' exc-latest' );
+        exc_pf_results( false );
+        return $html;
+    }
+
     /* ---------- SEO ---------- */
 
     function exc_pf_rank_math_robots( $robots ) {
@@ -1286,7 +1488,9 @@ add_shortcode( 'exc_product_filters', 'exc_pf_panel_shortcode' );
 add_shortcode( 'exc_filter_bar', 'exc_pf_bar_shortcode' );
 add_shortcode( 'exc_archive', 'exc_archive_shortcode' );
 add_shortcode( 'exc_search', 'exc_search_shortcode' );
+add_shortcode( 'exc_latest', 'exc_latest_shortcode' );
 add_action( 'pre_get_posts', 'exc_pf_apply_search_query', 50 );
+add_action( 'pre_get_posts', 'exc_pf_keep_args', 999 );
 add_filter( 'rank_math/frontend/robots', 'exc_pf_rank_math_robots', 20 );
 add_filter( 'wp_robots', 'exc_pf_wp_robots', 20 );
 add_filter( 'rank_math/frontend/canonical', 'exc_pf_canonical', 20 );

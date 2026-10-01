@@ -2,6 +2,7 @@
 
   templates/archive-html-widget.html  styles + [exc_archive] + outro
   templates/search-html-widget.html   styles + [exc_search]
+  templates/latest-html-widget.html   styles + [exc_latest] + outro
 
 Each is the archive CSS (comments stripped) in a <style> block followed
 by the shortcode content from the matching *-shortcode-widget.txt file.
@@ -17,7 +18,7 @@ css = re.sub(r'\n{2,}', '\n', css).strip()
 assert '</style' not in css
 style = '<style id="exc-product-archive-css">\n' + css + '\n</style>\n'
 
-for name in ('archive', 'search'):
+for name in ('archive', 'search', 'latest'):
     shortcode = open('templates/%s-shortcode-widget.txt' % name).read().strip()
     out = style + shortcode + '\n'
     path = 'templates/%s-html-widget.html' % name

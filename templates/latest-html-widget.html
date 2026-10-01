@@ -1,16 +1,4 @@
-/* ===================================================
-   EXC Product Archive CSS (v2, 1 Oct 2026)
-   WPCode: CSS Snippet. Auto Insert, Site Wide Header, priority 10.
-   Styles the whole [exc_archive] page (hero, filter panel, bar, sort
-   menu, product cards, pagination, About section) and the [exc_search]
-   results page from the "EXC Product Archive" PHP snippet. Uses the
-   Design Tokens snippet.
-
-   Desktop (1025px and up): sticky sidebar panel.
-   Tablet and phone: the panel becomes a drawer from the left, opened
-   by the Filters button in the bar above the products.
-   =================================================== */
-
+<style id="exc-product-archive-css">
 .exc-pf,
 .exc-pf-bar,
 .exc-pf-backdrop {
@@ -19,7 +7,6 @@
     --pf-radius: var(--exc-radius-md, 8px);
     --pf-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-
 .exc-pf-sr {
     position: absolute !important;
     width: 1px;
@@ -29,11 +16,6 @@
     clip-path: inset(50%);
     white-space: nowrap;
 }
-
-
-/* ---------------------------------------------------
-   1. PANEL
-   --------------------------------------------------- */
 .exc-pf {
     box-sizing: border-box;
     font-family: var(--exc-sans);
@@ -50,7 +32,6 @@
 .exc-pf__form {
     margin: 0;
 }
-
 @media (min-width: 1025px) {
     .exc-pf {
         position: sticky;
@@ -61,8 +42,6 @@
         scrollbar-width: thin;
     }
 }
-
-/* Header: title, active count, Clear all */
 .exc-pf__head {
     position: sticky;
     top: 0;
@@ -115,8 +94,6 @@
 .exc-pf__close {
     display: none;
 }
-
-/* Groups */
 .exc-pf__group {
     border-bottom: 1px solid var(--pf-line);
 }
@@ -169,11 +146,6 @@
 .exc-pf__body {
     padding: 0 20px 18px;
 }
-
-
-/* ---------------------------------------------------
-   2. TOGGLES (Availability)
-   --------------------------------------------------- */
 .exc-pf__body--switches {
     display: flex;
     flex-direction: column;
@@ -232,11 +204,6 @@
     outline: 2px solid var(--exc-purple);
     outline-offset: 2px;
 }
-
-
-/* ---------------------------------------------------
-   3. CATEGORY LIST
-   --------------------------------------------------- */
 .exc-pf .exc-pf__find {
     display: block;
     width: 100%;
@@ -260,7 +227,6 @@
     border-color: var(--exc-purple);
     box-shadow: 0 0 0 3px var(--exc-purple-soft);
 }
-
 .exc-pf__list {
     margin: 0 -10px;
     padding: 0;
@@ -280,7 +246,6 @@
 .exc-pf__item[hidden] {
     display: none !important;
 }
-
 .exc-pf__check {
     position: relative;
     display: flex;
@@ -328,7 +293,6 @@
     font-weight: 600;
     color: var(--exc-purple);
 }
-
 .exc-pf__label {
     flex: 1 1 auto;
     min-width: 0;
@@ -345,7 +309,6 @@
     text-align: center;
     font-variant-numeric: tabular-nums;
 }
-
 .exc-pf__more {
     display: inline-flex;
     align-items: center;
@@ -378,11 +341,6 @@
 .exc-pf__list.is-searching ~ .exc-pf__more {
     display: none;
 }
-
-
-/* ---------------------------------------------------
-   4. PRICE
-   --------------------------------------------------- */
 .exc-pf__range {
     --exc-pf-lo: 0%;
     --exc-pf-hi: 100%;
@@ -409,8 +367,6 @@
     background: var(--exc-purple);
     border-radius: 999px;
 }
-
-/* Two native sliders laid over one track; only the thumbs take clicks */
 .exc-pf__thumb {
     position: absolute;
     left: -9px;
@@ -469,7 +425,6 @@
 .exc-pf__thumb:focus-visible::-moz-range-thumb {
     box-shadow: 0 0 0 4px var(--exc-purple-soft);
 }
-
 .exc-pf__prices {
     display: flex;
     align-items: center;
@@ -524,13 +479,6 @@
     height: 1.5px;
     background: var(--pf-field);
 }
-
-
-/* ---------------------------------------------------
-   5. FOOTER BUTTONS
-   "Apply filters" only shows if the page script did not
-   load; "Show N products" only in the drawer.
-   --------------------------------------------------- */
 .exc-pf__foot {
     padding: 16px 20px 20px;
 }
@@ -567,8 +515,6 @@
 .exc-pf--js .exc-pf__foot {
     display: none;
 }
-
-/* While the page reloads after a change */
 .exc-pf.is-loading .exc-pf__groups {
     opacity: 0.55;
     pointer-events: none;
@@ -586,11 +532,6 @@
 @keyframes exc-pf-spin {
     to { transform: rotate(360deg); }
 }
-
-
-/* ---------------------------------------------------
-   6. BAR ABOVE THE PRODUCTS
-   --------------------------------------------------- */
 .exc-pf-bar {
     font-family: var(--exc-sans);
     margin: 0 0 20px;
@@ -612,7 +553,6 @@
     color: var(--exc-ink);
     font-variant-numeric: tabular-nums;
 }
-
 .exc-pf-bar__open {
     display: none;
     align-items: center;
@@ -634,7 +574,6 @@
     border-color: var(--exc-purple);
     color: var(--exc-purple);
 }
-/* Three-line "sliders" icon */
 .exc-pf-bar__icon {
     position: relative;
     width: 16px;
@@ -644,7 +583,6 @@
         linear-gradient(currentColor, currentColor) 2px 50% / 12px 1.5px no-repeat,
         linear-gradient(currentColor, currentColor) 5px 100% / 6px 1.5px no-repeat;
 }
-
 .exc-pf-bar__chips {
     display: flex;
     flex-wrap: wrap;
@@ -707,7 +645,6 @@
 .exc-pf-bar__clear:hover {
     color: var(--exc-purple);
 }
-
 .exc-pf-bar a:focus-visible,
 .exc-pf-bar button:focus-visible,
 .exc-pf a:focus-visible,
@@ -716,16 +653,10 @@
     outline: 2px solid var(--exc-purple);
     outline-offset: 2px;
 }
-
-
-/* ---------------------------------------------------
-   7. DRAWER (tablet and phone)
-   --------------------------------------------------- */
 @media (max-width: 1024px) {
     .exc-pf-bar__open {
         display: inline-flex;
     }
-
     .exc-pf {
         position: fixed;
         top: 0;
@@ -789,7 +720,6 @@
     .exc-pf__close:hover {
         background: var(--exc-off-white);
     }
-
     .exc-pf--js .exc-pf__foot {
         display: block;
         flex: 0 0 auto;
@@ -800,7 +730,6 @@
     .exc-pf--js .exc-pf__done {
         display: flex;
     }
-
     .exc-pf-backdrop {
         position: fixed;
         inset: 0;
@@ -818,20 +747,12 @@
     body.exc-pf-open {
         overflow: hidden;
     }
-
-    /* Bigger touch targets */
     .exc-pf__check,
     .exc-pf__switch {
         padding-top: 10px;
         padding-bottom: 10px;
     }
 }
-
-/* ---------------------------------------------------
-   8. THEME BUTTON RESETS
-   The theme paints every button pink on hover and focus;
-   keep ours in brand colours.
-   --------------------------------------------------- */
 .exc-pf .exc-pf__close:hover,
 .exc-pf .exc-pf__close:focus {
     background: var(--exc-off-white);
@@ -858,11 +779,6 @@
     border-color: var(--exc-purple-dark);
     color: var(--exc-white);
 }
-
-
-/* ===================================================
-   9. ARCHIVE PAGE  ([exc_archive])
-   =================================================== */
 .exc-archive {
     --pf-line: #e6e4e8;
     --pf-field: #c9c6cc;
@@ -879,8 +795,6 @@
 .exc-archive *::after {
     box-sizing: border-box;
 }
-
-/* ---- Hero ---- */
 .exc-archive__hero {
     padding: 44px 0 36px;
     margin: 0 0 32px;
@@ -946,8 +860,6 @@
     text-transform: uppercase;
     color: var(--exc-purple);
 }
-
-/* Category description: in the page for search engines, folded for people */
 .exc-archive__desc {
     max-width: 760px;
     margin: 22px auto 0;
@@ -998,8 +910,6 @@
 .exc-archive__desc-body p {
     margin: 0 0 12px;
 }
-
-/* ---- Layout ---- */
 .exc-archive__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -1017,8 +927,6 @@
 .exc-archive__main {
     min-width: 0;
 }
-
-/* ---- Bar: count, chips, sort ---- */
 .exc-pf-bar__row {
     flex-wrap: wrap;
 }
@@ -1051,8 +959,6 @@
     border-color: var(--exc-purple);
     outline: none;
 }
-
-/* ---- Product grid ---- */
 .exc-archive .exc-archive__grid ul.products {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1077,8 +983,6 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
-
-/* WooCommerce sizes cards with floats and percentages; the grid does it now */
 body .exc-archive .exc-archive__grid ul.products li.product {
     position: relative;
     display: flex;
@@ -1134,8 +1038,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .woocommerce-loop-pr
 body .exc-archive .exc-archive__grid ul.products li.product:hover .woocommerce-loop-product__title {
     color: var(--exc-purple);
 }
-
-/* Stock pill (from the Product Stock in Archive snippet) */
 body .exc-archive .exc-archive__grid ul.products li.product p.stock {
     align-self: center;
     margin: 0 0 10px;
@@ -1155,7 +1057,6 @@ body .exc-archive .exc-archive__grid ul.products li.product p.stock.out-of-stock
     background: rgba(192, 57, 43, 0.08);
     color: #b0362a;
 }
-
 body .exc-archive .exc-archive__grid ul.products li.product .price {
     display: block;
     margin: auto 0 14px;
@@ -1193,8 +1094,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .onsale {
     text-transform: uppercase;
     line-height: 1.2;
 }
-
-/* Add to basket */
 body .exc-archive .exc-archive__grid ul.products li.product .button {
     display: flex;
     align-items: center;
@@ -1235,8 +1134,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
     text-decoration: underline;
     text-underline-offset: 3px;
 }
-
-/* ---- Pagination ---- */
 .exc-archive nav.woocommerce-pagination {
     margin: 8px 0 0;
     text-align: center;
@@ -1290,8 +1187,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
     min-width: 24px;
     padding: 0;
 }
-
-/* ---- Empty results ---- */
 .exc-archive__reset {
     margin: 16px 0 0;
     text-align: center;
@@ -1314,17 +1209,9 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
     background: var(--exc-purple-dark);
     color: var(--exc-white);
 }
-
-/* ---- About (HTML between the shortcode tags) ---- */
-/* A plain slot: whatever goes between the tags brings its own styling. */
 .exc-archive__about {
     margin: 56px 0 0;
 }
-
-/* ---- "About Excelsior Wholesale" outro (pasted between the tags) ----
-   Moved here from the old About HTML widget's inline <style>; same
-   look, now on the design tokens, and a CSS chevron instead of an
-   inline SVG. */
 .exc-shop-outro {
     padding: 0;
     font-family: var(--exc-sans);
@@ -1471,8 +1358,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
         padding: 16px 18px;
     }
 }
-
-/* ---- Latest products page ([exc_latest]) ---- */
 .exc-latest__badge {
     display: inline-block;
     position: relative;
@@ -1490,9 +1375,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
     border-radius: 999px;
     box-shadow: 0 2px 8px rgba(143, 41, 151, 0.25);
 }
-
-/* ---- Search results page ([exc_search]) ---- */
-/* Nothing matched */
 .exc-search__empty {
     max-width: 640px;
     margin: 8px auto 0;
@@ -1551,8 +1433,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
     color: var(--exc-purple);
     text-decoration: none;
 }
-
-/* Editor placeholder */
 .exc-archive-placeholder {
     padding: 40px 24px;
     background: var(--exc-off-white);
@@ -1563,7 +1443,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
     text-align: center;
     color: var(--exc-muted);
 }
-
 @media (max-width: 767px) {
     .exc-archive {
         padding: 0 16px 56px;
@@ -1590,8 +1469,6 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
         font-size: 16px;
     }
 }
-
-
 @media (prefers-reduced-motion: reduce) {
     .exc-shop-outro__details[open] .exc-shop-outro__content {
         animation: none;
@@ -1604,3 +1481,27 @@ body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
         transition: none !important;
     }
 }
+</style>
+[exc_latest limit="16"]
+<section class="exc-shop-outro">
+  <details class="exc-shop-outro__details">
+    <summary class="exc-shop-outro__summary">
+      <span class="exc-shop-outro__summary-label">About Excelsior Wholesale</span>
+      <span class="exc-shop-outro__summary-icon" aria-hidden="true"></span>
+    </summary>
+    <div class="exc-shop-outro__content">
+      <div class="exc-shop-outro__lede">
+        <p class="exc-shop-outro__eyebrow">The Florist&rsquo;s Warehouse</p>
+        <p class="exc-shop-outro__body">Excelsior Wholesale is one of the UK&rsquo;s largest stockists of <strong>artificial and dried floristry supplies</strong>, trusted by florists, gift shops, event planners and interior designers across the country. Our catalogue carries over 4,000 trade-priced lines &mdash; artificial flowers, dried stems, foliage, ribbons, glassware, oasis floral foam, candles, weddings essentials and more.</p>
+        <p class="exc-shop-outro__body">Whether you&rsquo;re restocking design products for a busy shop, sourcing centrepieces for a wedding, or building a seasonal display, every order is picked, packed and dispatched by our small in-house team. New stock lands weekly &mdash; use the filters to narrow by category, type or price and find what you need fast. We supply Artificial or Dried only; we don&rsquo;t stock fresh flowers and plants.</p>
+      </div>
+      <ul class="exc-shop-outro__usps">
+        <li><span class="exc-shop-outro__usp-label">Free Delivery</span><span class="exc-shop-outro__usp-detail">On orders over &pound;70 + VAT</span></li>
+        <li><span class="exc-shop-outro__usp-label">New Lines</span><span class="exc-shop-outro__usp-detail">Added weekly</span></li>
+        <li><span class="exc-shop-outro__usp-label">Trade Prices</span><span class="exc-shop-outro__usp-detail">Built for working florists</span></li>
+        <li><span class="exc-shop-outro__usp-label">4,000+ Lines</span><span class="exc-shop-outro__usp-detail">One of the UK&rsquo;s largest ranges</span></li>
+      </ul>
+    </div>
+  </details>
+</section>
+[/exc_latest]
