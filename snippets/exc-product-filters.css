@@ -1,8 +1,9 @@
 /* ===================================================
-   EXC Product Filters CSS (v1, 1 Oct 2026)
+   EXC Product Filters CSS (v2, 1 Oct 2026)
    WPCode: CSS Snippet. Auto Insert, Site Wide Header, priority 10.
-   Styles the [exc_product_filters] panel and [exc_filter_bar] from the
-   "EXC Product Filters" PHP snippet. Uses the Design Tokens snippet.
+   Styles the whole [exc_archive] page (hero, filter panel, bar, sort
+   menu, product cards, pagination, About section) from the "EXC
+   Product Archive" PHP snippet. Uses the Design Tokens snippet.
 
    Desktop (1025px and up): sticky sidebar panel.
    Tablet and phone: the panel becomes a drawer from the left, opened
@@ -855,6 +856,516 @@
     background: var(--exc-purple-dark);
     border-color: var(--exc-purple-dark);
     color: var(--exc-white);
+}
+
+
+/* ===================================================
+   9. ARCHIVE PAGE  ([exc_archive])
+   =================================================== */
+.exc-archive {
+    --pf-line: #e6e4e8;
+    --pf-field: #c9c6cc;
+    --pf-radius: var(--exc-radius-md, 8px);
+    box-sizing: border-box;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px 72px;
+    font-family: var(--exc-sans);
+    color: var(--exc-ink);
+}
+.exc-archive *,
+.exc-archive *::before,
+.exc-archive *::after {
+    box-sizing: border-box;
+}
+
+/* ---- Hero ---- */
+.exc-archive__hero {
+    padding: 44px 0 36px;
+    margin: 0 0 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--pf-line);
+}
+.exc-archive__crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 0 14px;
+    padding: 0;
+    list-style: none;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+.exc-archive__crumbs li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--exc-muted);
+}
+.exc-archive__crumbs li + li::before {
+    content: '/';
+    color: var(--pf-field);
+    font-weight: 400;
+}
+.exc-archive__crumbs a {
+    color: var(--exc-purple);
+    text-decoration: none;
+}
+.exc-archive__crumbs a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.exc-archive__title {
+    margin: 0;
+    font-family: var(--exc-sans);
+    font-size: clamp(30px, 4.2vw, 46px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    color: var(--exc-ink);
+}
+.exc-archive__title::after {
+    content: '';
+    display: block;
+    width: 44px;
+    height: 3px;
+    margin: 16px auto 0;
+    background: var(--exc-purple);
+    border-radius: 3px;
+}
+.exc-archive__meta {
+    margin: 14px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--exc-purple);
+}
+
+/* Category description: in the page for search engines, folded for people */
+.exc-archive__desc {
+    max-width: 760px;
+    margin: 22px auto 0;
+    text-align: center;
+}
+.exc-archive__desc > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto;
+    padding: 8px 16px;
+    border: 1px solid var(--pf-line);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--exc-ink);
+    cursor: pointer;
+    list-style: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.exc-archive__desc > summary::-webkit-details-marker {
+    display: none;
+}
+.exc-archive__desc > summary::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-top: -3px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+}
+.exc-archive__desc[open] > summary::after {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+}
+.exc-archive__desc > summary:hover {
+    border-color: var(--exc-purple);
+    color: var(--exc-purple);
+}
+.exc-archive__desc-body {
+    margin: 16px 0 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--exc-muted);
+    text-align: left;
+}
+.exc-archive__desc-body p {
+    margin: 0 0 12px;
+}
+
+/* ---- Layout ---- */
+.exc-archive__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+@media (min-width: 1025px) {
+    .exc-archive.has-filters .exc-archive__layout {
+        grid-template-columns: 272px minmax(0, 1fr);
+    }
+}
+.exc-archive__side {
+    min-width: 0;
+}
+.exc-archive__main {
+    min-width: 0;
+}
+
+/* ---- Bar: count, chips, sort ---- */
+.exc-pf-bar__row {
+    flex-wrap: wrap;
+}
+.exc-pf-bar__right {
+    margin-left: auto;
+}
+.exc-pf-bar__right .woocommerce-ordering {
+    float: none;
+    margin: 0;
+}
+.exc-pf-bar__right select.orderby {
+    height: 40px;
+    min-width: 190px;
+    margin: 0;
+    padding: 0 38px 0 14px;
+    background: var(--exc-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%231f1f1f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center / 11px 8px;
+    border: 1px solid var(--pf-field);
+    border-radius: 999px;
+    font-family: var(--exc-sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--exc-ink);
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+.exc-pf-bar__right select.orderby:hover,
+.exc-pf-bar__right select.orderby:focus {
+    border-color: var(--exc-purple);
+    outline: none;
+}
+
+/* ---- Product grid ---- */
+.exc-archive .exc-archive__grid ul.products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0 0 40px;
+    padding: 0;
+    list-style: none;
+}
+.exc-archive .exc-archive__grid ul.products::before,
+.exc-archive .exc-archive__grid ul.products::after {
+    content: none;
+    display: none;
+}
+@media (min-width: 700px) {
+    .exc-archive .exc-archive__grid ul.products {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+    }
+}
+@media (min-width: 1300px) {
+    .exc-archive .exc-archive__grid ul.products {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* WooCommerce sizes cards with floats and percentages; the grid does it now */
+body .exc-archive .exc-archive__grid ul.products li.product {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    float: none !important;
+    clear: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 12px 12px 16px;
+    background: var(--exc-white);
+    border: 1px solid var(--pf-line);
+    border-radius: var(--exc-radius-lg, 12px);
+    text-align: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--pf-ease, ease);
+}
+body .exc-archive .exc-archive__grid ul.products li.product:hover {
+    border-color: var(--exc-purple-line);
+    box-shadow: 0 10px 28px -14px rgba(143, 41, 151, 0.35);
+    transform: translateY(-2px);
+}
+body .exc-archive .exc-archive__grid ul.products li.product a.woocommerce-LoopProduct-link {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    color: inherit;
+    text-decoration: none;
+}
+body .exc-archive .exc-archive__grid ul.products li.product img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin: 0 0 14px;
+    object-fit: contain;
+    background: var(--exc-off-white);
+    border-radius: var(--pf-radius);
+    box-shadow: none;
+}
+body .exc-archive .exc-archive__grid ul.products li.product .woocommerce-loop-product__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.8em;
+    margin: 0 0 10px;
+    padding: 0 4px;
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--exc-ink);
+}
+body .exc-archive .exc-archive__grid ul.products li.product:hover .woocommerce-loop-product__title {
+    color: var(--exc-purple);
+}
+
+/* Stock pill (from the Product Stock in Archive snippet) */
+body .exc-archive .exc-archive__grid ul.products li.product p.stock {
+    align-self: center;
+    margin: 0 0 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+body .exc-archive .exc-archive__grid ul.products li.product p.stock.in-stock {
+    background: rgba(46, 139, 87, 0.1);
+    color: #23744a;
+}
+body .exc-archive .exc-archive__grid ul.products li.product p.stock.out-of-stock {
+    background: rgba(192, 57, 43, 0.08);
+    color: #b0362a;
+}
+
+body .exc-archive .exc-archive__grid ul.products li.product .price {
+    display: block;
+    margin: auto 0 14px;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--exc-purple);
+    font-variant-numeric: tabular-nums;
+}
+body .exc-archive .exc-archive__grid ul.products li.product .price del {
+    margin-right: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--exc-muted);
+    opacity: 1;
+}
+body .exc-archive .exc-archive__grid ul.products li.product .price ins {
+    text-decoration: none;
+}
+body .exc-archive .exc-archive__grid ul.products li.product .onsale {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    left: auto;
+    z-index: 2;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 5px 10px;
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+/* Add to basket */
+body .exc-archive .exc-archive__grid ul.products li.product .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    margin: 0;
+    padding: 0 14px;
+    background: var(--exc-white);
+    color: var(--exc-purple);
+    border: 1px solid var(--exc-purple);
+    border-radius: var(--pf-radius);
+    box-shadow: none;
+    font-family: var(--exc-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+body .exc-archive .exc-archive__grid ul.products li.product .button:hover,
+body .exc-archive .exc-archive__grid ul.products li.product .button:focus {
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border-color: var(--exc-purple);
+}
+body .exc-archive .exc-archive__grid ul.products li.product .button.loading {
+    opacity: 0.6;
+}
+body .exc-archive .exc-archive__grid ul.products li.product .added_to_cart {
+    display: block;
+    margin: 8px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--exc-purple);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* ---- Pagination ---- */
+.exc-archive nav.woocommerce-pagination {
+    margin: 8px 0 0;
+    text-align: center;
+}
+.exc-archive nav.woocommerce-pagination ul.page-numbers {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+}
+.exc-archive nav.woocommerce-pagination ul.page-numbers li {
+    float: none;
+    margin: 0;
+    border: 0;
+    overflow: visible;
+}
+.exc-archive nav.woocommerce-pagination ul.page-numbers li .page-numbers {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    background: var(--exc-white);
+    color: var(--exc-ink);
+    border: 1px solid var(--pf-line);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.exc-archive nav.woocommerce-pagination ul.page-numbers li a.page-numbers:hover {
+    border-color: var(--exc-purple);
+    color: var(--exc-purple);
+    background: var(--exc-white);
+}
+.exc-archive nav.woocommerce-pagination ul.page-numbers li span.current {
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border-color: var(--exc-purple);
+}
+.exc-archive nav.woocommerce-pagination ul.page-numbers li span.dots {
+    border-color: transparent;
+    background: none;
+    min-width: 24px;
+    padding: 0;
+}
+
+/* ---- Empty results ---- */
+.exc-archive__reset {
+    margin: 16px 0 0;
+    text-align: center;
+}
+.exc-archive__reset-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 24px;
+    background: var(--exc-purple);
+    color: var(--exc-white);
+    border-radius: var(--pf-radius);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+.exc-archive__reset-btn:hover {
+    background: var(--exc-purple-dark);
+    color: var(--exc-white);
+}
+
+/* ---- About (HTML between the shortcode tags) ---- */
+.exc-archive__about {
+    margin: 64px 0 0;
+    padding: 40px 0 0;
+    border-top: 1px solid var(--pf-line);
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--exc-muted);
+}
+.exc-archive__about h2,
+.exc-archive__about h3 {
+    color: var(--exc-ink);
+    letter-spacing: -0.015em;
+}
+
+/* Editor placeholder */
+.exc-archive-placeholder {
+    padding: 40px 24px;
+    background: var(--exc-off-white);
+    border: 1px dashed var(--exc-purple-line);
+    border-radius: var(--exc-radius-md, 8px);
+    font-family: var(--exc-sans);
+    font-size: 14px;
+    text-align: center;
+    color: var(--exc-muted);
+}
+
+@media (max-width: 767px) {
+    .exc-archive {
+        padding: 0 16px 56px;
+    }
+    .exc-archive__hero {
+        padding: 28px 0 24px;
+        margin-bottom: 20px;
+    }
+    .exc-pf-bar__right {
+        flex: 1 1 100%;
+        order: 3;
+        margin-left: 0;
+    }
+    .exc-pf-bar__right select.orderby {
+        width: 100%;
+    }
+    body .exc-archive .exc-archive__grid ul.products li.product {
+        padding: 8px 8px 12px;
+    }
+    .exc-archive .exc-archive__grid li.product .woocommerce-loop-product__title {
+        font-size: 13px;
+    }
+    .exc-archive .exc-archive__grid li.product .price {
+        font-size: 16px;
+    }
 }
 
 

@@ -1,19 +1,29 @@
 /**
- * EXC Product Filters
+ * EXC Product Archive (v2 of EXC Product Filters)
  * ------------------------------------------------------------
  * WPCode PHP Snippet. Run Everywhere, Auto Insert, priority 10.
  * No opening PHP tag. Pure ASCII.
  * Styled by the "EXC Product Filters CSS" snippet.
  *
- * Replaces JetSmartFilters on product archives with plain filters that
- * reload the page: no AJAX layer to break, filters live in the address,
- * so the back button, pagination, sorting and shared links all work on
- * their own.
+ * ONE SHORTCODE BUILDS THE WHOLE ARCHIVE PAGE, ALL SERVER RENDERED:
  *
- * SHORTCODES (Elementor Shortcode widgets in the archive template)
- *   [exc_product_filters]  the filter panel (sidebar; drawer on mobile)
- *   [exc_filter_bar]       product count, active filter chips with x,
- *                          Clear all, and the mobile Filters button
+ *   [exc_archive]
+ *     optional HTML for an About section at the bottom of the page
+ *   [/exc_archive]
+ *
+ * Put it in a single Elementor Shortcode widget in the product archive
+ * template. (Elementor's HTML widget cannot run shortcodes, so it must
+ * be the Shortcode widget.) It renders, in this order:
+ *   hero      breadcrumbs, H1, product count, category description
+ *   filters   sidebar on desktop, drawer on tablet and phone
+ *   bar       result count, active filter chips, Clear all, sort menu
+ *   products  WooCommerce's own product cards, so the stock pill and
+ *             collection badge snippets keep working
+ *   paging    WooCommerce pagination (?paged=N on .html URLs)
+ *   about     whatever HTML sits between the shortcode tags
+ *
+ * Filters reload the page with the choices in the address (no AJAX),
+ * so back, pagination, sorting and shared links all just work.
  *
  * FILTERS (address parameters)
  *   cats=slug,slug   categories; ticking several shows either
@@ -27,9 +37,13 @@
  * they can be unticked. Counts respect the other active filters.
  *
  * SEO: any filtered view is noindex,follow and canonicalises to the
- * unfiltered page. Filter links carry rel="nofollow".
+ * unfiltered page. Filter links carry rel="nofollow". Unfiltered pages,
+ * including their pagination, stay indexable.
  *
- * Where the panel renders, the "EXC Archive Filters" script is
+ * The older [exc_product_filters] and [exc_filter_bar] shortcodes still
+ * work, for building a page out of separate widgets instead.
+ *
+ * Where the archive renders, the "EXC Archive Filters" script is
  * switched off for that page, since its JetSmartFilters helpers no
  * longer apply.
  *
@@ -56,6 +70,10 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
                 'add_query_arg', 'remove_query_arg', 'sanitize_title', 'sanitize_key', 'wp_unslash',
                 'number_format_i18n', 'esc_url', 'esc_html', 'esc_attr', 'get_option', 'get_post_meta',
                 'wp_register_script', 'wp_enqueue_script', 'wp_add_inline_script', 'wp_dequeue_script',
+                'wc_setup_loop', 'woocommerce_product_loop_start', 'woocommerce_product_loop_end',
+                'wc_get_template_part', 'woocommerce_catalog_ordering', 'have_posts', 'the_post',
+                'rewind_posts', 'wp_reset_postdata', 'remove_action', 'do_action', 'wpautop',
+                'wp_kses_post', 'do_shortcode', 'wc_get_page_id', 'get_post', 'home_url',
             );
             foreach ( $needs as $fn ) {
                 if ( ! function_exists( $fn ) ) {
@@ -869,13 +887,11 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
 
     /* ---------- [exc_filter_bar] ---------- */
 
-    function exc_pf_bar_shortcode() {
-        if ( ! exc_pf_is_listing() ) {
-            return '';
-        }
+    function exc_pf_bar_html( $right = '' ) {
         global $wp_query;
         $total = isset( $wp_query->found_posts ) ? (int) $wp_query->found_posts : 0;
         $chips = exc_pf_chips();
+        $has_panel = ! empty( exc_pf_data()['base'] );
 
         $list = '';
         foreach ( $chips as $c ) {
@@ -890,13 +906,136 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
                 . '<li><a class="exc-pf-bar__clear" href="' . esc_url( exc_pf_clear_url() ) . '" rel="nofollow">Clear all</a></li></ul>';
         }
 
+        $open = $has_panel
+            ? sprintf(
+                '<button type="button" class="exc-pf-bar__open" data-exc-pf-open aria-controls="exc-pf"><span class="exc-pf-bar__icon" aria-hidden="true"></span>Filters%s</button>',
+                $chips ? ' <span class="exc-pf__badge">' . esc_html( count( $chips ) ) . '</span>' : ''
+            )
+            : '';
+
         return sprintf(
-            '<div class="exc-pf-bar" id="exc-products"><div class="exc-pf-bar__row"><button type="button" class="exc-pf-bar__open" data-exc-pf-open aria-controls="exc-pf"><span class="exc-pf-bar__icon" aria-hidden="true"></span>Filters%1$s</button><p class="exc-pf-bar__count"><strong>%2$s</strong> %3$s</p></div>%4$s</div>',
-            $chips ? ' <span class="exc-pf__badge">' . esc_html( count( $chips ) ) . '</span>' : '',
+            '<div class="exc-pf-bar" id="exc-products"><div class="exc-pf-bar__row">%1$s<p class="exc-pf-bar__count"><strong>%2$s</strong> %3$s</p>%4$s</div>%5$s</div>',
+            $open,
             esc_html( number_format_i18n( $total ) ),
             1 === $total ? 'product' : 'products',
+            '' !== $right ? '<div class="exc-pf-bar__right">' . $right . '</div>' : '',
             $list
         );
+    }
+
+    function exc_pf_bar_shortcode() {
+        if ( ! exc_pf_is_listing() ) {
+            return '';
+        }
+        return exc_pf_bar_html();
+    }
+
+    /* ---------- [exc_archive]: the whole page ---------- */
+
+    // Run something that prints, and hand back what it printed.
+    function exc_pf_capture( $fn ) {
+        ob_start();
+        $fn();
+        return ob_get_clean();
+    }
+
+    function exc_archive_hero_html( $count ) {
+        $ctx   = exc_pf_context();
+        $title = '';
+        $desc  = '';
+        if ( $ctx['term'] ) {
+            $title = $ctx['term']->name;
+            $desc  = $ctx['term']->description;
+        } else {
+            $title   = 'Shop';
+            $shop_id = wc_get_page_id( 'shop' );
+            $page    = ( $shop_id > 0 ) ? get_post( $shop_id ) : null;
+            $desc    = $page ? $page->post_excerpt : '';
+        }
+
+        // Breadcrumbs from the Archive Hero & Breadcrumbs snippet when it
+        // is active, otherwise a plain Home / Title trail.
+        $trail = function_exists( 'exc_get_breadcrumb_trail' )
+            ? exc_get_breadcrumb_trail()
+            : array(
+                array( 'label' => 'Home', 'url' => home_url( '/' ), 'current' => false ),
+                array( 'label' => $title, 'url' => '', 'current' => true ),
+            );
+        $crumbs = '';
+        foreach ( $trail as $crumb ) {
+            $crumbs .= ( $crumb['current'] || empty( $crumb['url'] ) )
+                ? '<li aria-current="page">' . esc_html( $crumb['label'] ) . '</li>'
+                : '<li><a href="' . esc_url( $crumb['url'] ) . '">' . esc_html( $crumb['label'] ) . '</a></li>';
+        }
+
+        $about = '';
+        if ( '' !== trim( (string) $desc ) ) {
+            $about = '<details class="exc-archive__desc"><summary>About this category</summary><div class="exc-archive__desc-body">'
+                . wp_kses_post( wpautop( $desc ) ) . '</div></details>';
+        }
+
+        return '<header class="exc-archive__hero">'
+            . '<nav class="exc-archive__crumbs" aria-label="Breadcrumb"><ol>' . $crumbs . '</ol></nav>'
+            . '<h1 class="exc-archive__title">' . esc_html( $title ) . '</h1>'
+            . ( $count > 0 ? '<p class="exc-archive__meta">' . esc_html( number_format_i18n( $count ) ) . ( 1 === $count ? ' product' : ' products' ) . '</p>' : '' )
+            . $about
+            . '</header>';
+    }
+
+    function exc_archive_loop() {
+        rewind_posts();
+        if ( have_posts() ) {
+            // The count and sort menu live in the bar above instead.
+            remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+            remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+            do_action( 'woocommerce_before_shop_loop' );
+            woocommerce_product_loop_start();
+            while ( have_posts() ) {
+                the_post();
+                do_action( 'woocommerce_shop_loop' );
+                wc_get_template_part( 'content', 'product' );
+            }
+            woocommerce_product_loop_end();
+            do_action( 'woocommerce_after_shop_loop' );
+        } else {
+            do_action( 'woocommerce_no_products_found' );
+            if ( exc_pf_is_filtered() ) {
+                echo '<p class="exc-archive__reset"><a class="exc-archive__reset-btn" href="' . esc_url( exc_pf_clear_url() ) . '" rel="nofollow">Clear all filters</a></p>';
+            }
+        }
+        wp_reset_postdata();
+    }
+
+    function exc_archive_shortcode( $atts = array(), $content = '' ) {
+        if ( ! exc_pf_is_listing() ) {
+            // Placeholder in the Elementor editor; nothing anywhere else.
+            return isset( $_GET['elementor-preview'] )
+                ? '<div class="exc-archive-placeholder">Product archive: hero, filters, products and pagination render here on the live site.</div>'
+                : '';
+        }
+
+        wc_setup_loop();
+        $d        = exc_pf_data();
+        $panel    = exc_pf_panel_shortcode();
+        $ordering = exc_pf_capture( function () { woocommerce_catalog_ordering(); } );
+        $products = exc_pf_capture( function () { exc_archive_loop(); } );
+        exc_pf_enqueue_once();
+
+        $about = '';
+        if ( '' !== trim( (string) $content ) ) {
+            $about = '<section class="exc-archive__about">' . do_shortcode( $content ) . '</section>';
+        }
+
+        return '<div class="exc-archive' . ( $panel ? ' has-filters' : '' ) . '">'
+            . exc_archive_hero_html( count( $d['base'] ) )
+            . '<div class="exc-archive__layout">'
+            . ( $panel ? '<div class="exc-archive__side">' . $panel . '</div>' : '' )
+            . '<div class="exc-archive__main">'
+            . exc_pf_bar_html( $ordering )
+            . '<div class="exc-archive__grid">' . $products . '</div>'
+            . '</div></div>'
+            . $about
+            . '</div>';
     }
 
     /* ---------- SEO ---------- */
@@ -929,6 +1068,7 @@ if ( ! function_exists( 'exc_pf_ready' ) ) {
 add_action( 'woocommerce_product_query', 'exc_pf_apply_main_query', 20 );
 add_shortcode( 'exc_product_filters', 'exc_pf_panel_shortcode' );
 add_shortcode( 'exc_filter_bar', 'exc_pf_bar_shortcode' );
+add_shortcode( 'exc_archive', 'exc_archive_shortcode' );
 add_filter( 'rank_math/frontend/robots', 'exc_pf_rank_math_robots', 20 );
 add_filter( 'wp_robots', 'exc_pf_wp_robots', 20 );
 add_filter( 'rank_math/frontend/canonical', 'exc_pf_canonical', 20 );
